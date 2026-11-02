@@ -125,6 +125,8 @@ Before implementation, the team will verify the availability, format and **licen
 >
 > **Status (checked 2 Nov 2026 on MS Add. 9308):** accessible. 183 of 194 pages have a diplomatic transcription, served as HTML by CUDL's transcription service and linked from the item JSON (`transcriptionDiplomaticURL`). The transcription licence is not stated (images: CC BY-NC 3.0; metadata: CC BY-NC-ND 3.0), so transcribed text stays in `data/raw/` and is not redistributed. The licence will be confirmed with Cambridge University Library.
 >
+> **Decision (2 Nov 2026):** Curious Cures is the primary demo corpus. BHL remains supporting material for printed botanical terminology and OCR evaluation.
+>
 > If they are not accessible, this is a **change of demo plan**, not a silent fallback:
 > - the primary corpus switches to BHL printed botanical works through OCR;
 > - recipe-specific fields (preparation, other ingredients, described use) will often be empty, so the demo focuses on plant names, parts, historical terminology and taxonomic mapping;
