@@ -121,7 +121,9 @@ The same plant page then collects mentions from other manuscripts, from BHL bota
 Before implementation, the team will verify the availability, format and **licence** of each source. Some digitised manuscript images have restrictions on reuse.
 
 > **Critical dependency: Curious Cures transcriptions.**
-> The demo, the main evaluation set and the example in Section 5 all depend on the 1,179 transcriptions being accessible from CUDL in a usable form (text/TEI export, or copyable per item), under a licence that allows this use. **Status: to be verified by the team.**
+> The demo, the main evaluation set and the example in Section 5 all depend on the 1,179 transcriptions being accessible from CUDL in a usable form (text/TEI export, or copyable per item), under a licence that allows this use.
+>
+> **Status (checked 2 Nov 2026 on MS Add. 9308):** accessible. 183 of 194 pages have a diplomatic transcription, served as HTML by CUDL's transcription service and linked from the item JSON (`transcriptionDiplomaticURL`). The transcription licence is not stated (images: CC BY-NC 3.0; metadata: CC BY-NC-ND 3.0), so transcribed text stays in `data/raw/` and is not redistributed. The licence will be confirmed with Cambridge University Library.
 >
 > If they are not accessible, this is a **change of demo plan**, not a silent fallback:
 > - the primary corpus switches to BHL printed botanical works through OCR;
