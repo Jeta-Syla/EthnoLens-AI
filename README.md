@@ -1,330 +1,325 @@
 # EthnoLens AI
-### Turning Historical Traditional Medicine Knowledge into Structured, Searchable Insights with AI
+### AI that preserves botanical and medicinal heritage
 
-## 1. Project Overview
-
-**EthnoLens AI** is an AI-powered knowledge extraction platform designed to transform historical medical and botanical texts into structured, searchable information about traditional medicinal plants.
-
-Historical manuscripts and books contain valuable information about how plants were traditionally used, which parts were collected, and how remedies were prepared. However, this knowledge is often scattered across old documents, written in historical languages, and difficult to search, analyse, and compare.
-
-EthnoLens AI aims to bridge this gap by combining **Historical Sources, Optical Character Recognition (OCR), Natural Language Processing (NLP), AI-based Knowledge Extraction, and Modern Botanical References**.
-
-The platform focuses on preserving historical knowledge, making it accessible, and connecting historical plant terminology with modern botanical classifications.
-
-## 2. Problem Statement
-
-A significant amount of traditional medicinal knowledge is preserved in historical manuscripts, pharmacopoeias, and botanical books.
-
-Despite the availability of digitised historical collections, extracting meaningful information from these sources remains challenging.
-
-Researchers often need to:
-
-- Manually search through hundreds of historical pages.
-- Interpret old terminology, spelling variations, and languages.
-- Identify medicinal plants and their ingredients.
-- Extract plant parts and traditional preparation methods.
-- Identify the traditional uses described in historical texts.
-- Connect historical plant names with modern scientific names.
-- Preserve references to the original manuscripts and passages.
-
-This process is time-consuming and makes it difficult to systematically analyse and compare historical knowledge.
-
-**EthnoLens AI addresses this challenge by automatically extracting, organising, linking, and presenting historical knowledge through an AI-powered platform.**
-
-## 3. Main Objectives
-
-The main objective is to develop an AI-based system that converts unstructured historical knowledge into structured and searchable information.
-
-Given a historical text describing a traditional remedy, the system should:
-
-1. Read and process the historical document.
-2. Identify plant names as they appear in the original text.
-3. Extract the plant parts used (leaves, roots, seeds, flowers, bark, etc.).
-4. Identify traditional preparation methods (infusion, decoction, powder, ointment, etc.).
-5. Extract the traditional uses or ailments mentioned.
-6. Map historical plant names to modern scientific names where possible.
-7. Store extracted information in a structured database.
-8. Preserve the original source, relevant passage, and confidence level for each extraction.
-
-The system will distinguish between information explicitly stated in historical sources and information inferred through AI or external botanical references.
-
-## 4. Dataset Sources
-
-The project will combine several complementary historical and annotated datasets.
-
-### 4.1 Curious Cures in Cambridge Libraries
-
-**Role: Primary historical medical source**
-
-- Approximately 8,000 historical medical recipes.
-- Around 190 digitised manuscripts.
-- Transcriptions in Latin and Middle English.
-- Historical recipes containing ingredients and preparation methods.
-
-This is the primary source because its recipe-oriented content is particularly relevant to identifying plants, ingredients, traditional uses, and preparation methods.
-
-Source: https://www.lib.cam.ac.uk/curiouscures
-
-### 4.2 Biodiversity Heritage Library (BHL)
-
-**Role: Supporting historical botanical literature**
-
-- Historical botanical and biological books.
-- Digitised publications and OCR-derived text.
-- Historical plant descriptions and scientific terminology.
-- Large-scale historical literature collections.
-
-The BHL collection can help identify historical plant terminology and provide additional botanical context.
-
-Sources:
-- https://www.biodiversitylibrary.org/
-- https://huggingface.co/datasets/common-pile/biodiversity_heritage_library
-
-### 4.3 HIMERA Corpus
-
-**Role: NLP development and evaluation**
-
-- Historical medical texts.
-- Expert-annotated entities and semantic relationships.
-- Useful examples for developing and evaluating NLP extraction methods.
-
-HIMERA can support the development of Named Entity Recognition and relation extraction components.
-
-Source: https://www.nactem.ac.uk/himera/
-
-### 4.4 FineBooks BHL IMPACT Ground Truth
-
-**Role: OCR evaluation**
-
-- 2,165 historical pages.
-- Expert-corrected transcriptions.
-- Reference material for evaluating OCR quality.
-
-This dataset can help measure how accurately the system converts historical printed pages into machine-readable text.
-
-Source: https://huggingface.co/datasets/finebooks/bhl-impact-gt
-
-## 5. Dataset Strategy
-
-Each dataset has a specific purpose within the project.
-
-| Dataset | Role |
-|---|---|
-| Curious Cures | Primary historical medical recipes |
-| BHL | Supporting botanical literature |
-| HIMERA | NLP development and evaluation |
-| FineBooks | OCR testing and evaluation |
-
-**Recommended combination:** Curious Cures + selected BHL material + HIMERA.
-
-FineBooks can be used as an additional OCR evaluation resource.
-
-Before implementation, the team will verify dataset availability, full-text access, formats, and licensing conditions.
-
-## 6. Proposed System Architecture
-
-The system will follow this processing pipeline:
-
-```text
-              HISTORICAL SOURCES
-         Curious Cures | BHL | Other texts
-                       |
-                       v
-               DOCUMENT INGESTION
-            PDFs, images, metadata, texts
-                       |
-                       v
-                    OCR LAYER
-             Scanned documents to text
-                       |
-                       v
-              TEXT PREPROCESSING
-          Cleaning, segmentation, language
-                       |
-                       v
-                AI / NLP EXTRACTION
-        Plant Names | Plant Parts | Preparation
-             Traditional Uses | Ingredients
-                       |
-                       v
-              ENTITY NORMALISATION
-         Historical terminology and variants
-                       |
-                       v
-             MODERN BOTANICAL MAPPING
-          Historical names to scientific names
-                       |
-                       v
-               STRUCTURED DATABASE
-        Extracted information, sources, evidence
-                       |
-                       v
-                 ETHNOLENS AI
-          Search | Filter | Explore | Compare
-```
-
-### 6.1 Document Ingestion
-
-Import historical documents and relevant metadata, including titles, authors, dates, languages, manuscript identifiers, and page numbers.
-
-### 6.2 OCR and Text Preprocessing
-
-Convert scanned pages into machine-readable text using OCR.
-
-Clean and segment the extracted text while preserving the original content and historical spelling.
-
-### 6.3 AI / NLP Knowledge Extraction
-
-Apply NLP techniques to identify:
-
-- Plant names.
-- Plant parts.
-- Preparation methods.
-- Traditional uses.
-- Other ingredients.
-- Quantities and measurements, where available.
-
-### 6.4 Entity Normalisation and Botanical Mapping
-
-Resolve historical spelling variations and connect historical plant names with possible modern scientific names using botanical reference sources.
-
-Uncertain identifications should be marked for human review rather than presented as confirmed matches.
-
-### 6.5 Structured Data Storage
-
-Store the extracted information in a database, preserving source references and evidence passages.
-
-### 6.6 Dashboard
-
-Provide a user-friendly interface for searching, filtering, exploring, and comparing historical plant knowledge.
-
-## 7. Proposed Data Model
-
-Each extracted historical remedy can be represented through structured fields.
-
-| Field | Description |
-|---|---|
-| Historical Plant Name | Name found in the original text |
-| Normalised Plant Name | Standardised historical name |
-| Modern Scientific Name | Candidate modern botanical name |
-| Plant Part | Leaf, root, seed, flower, bark, etc. |
-| Traditional Use | Historical use or ailment described |
-| Preparation Method | Infusion, decoction, powder, ointment, etc. |
-| Other Ingredients | Additional ingredients in the recipe |
-| Historical Source | Book, manuscript, or collection |
-| Page Reference | Original page or passage location |
-| Original Passage | Supporting historical text |
-| Language | Language of the source |
-| Extraction Confidence | Confidence in AI/NLP extraction |
-| Mapping Confidence | Confidence in botanical identification |
-| Review Status | Pending, verified, or rejected |
-
-The database should support multiple historical names, sources, and traditional uses associated with the same candidate plant.
-
-## 8. Proposed Dashboard Features
-
-The EthnoLens AI dashboard will allow users to explore extracted historical knowledge.
-
-### Main Features
-
-- **Plant Search:** Search using historical or modern plant names.
-- **Historical Knowledge Explorer:** Browse extracted information from historical documents.
-- **Plant Information:** View plant parts, traditional uses, and preparation methods.
-- **Botanical Mapping:** Explore connections between historical and modern scientific names.
-- **Source References:** Access original passages and historical documents.
-- **Confidence Indicators:** Identify reliable and uncertain extractions.
-- **Filtering:** Filter by plant part, preparation, language, historical source, or period.
-- **Knowledge Comparison:** Compare how different historical sources describe the same plant.
-
-### Example Result
-
-| Field | Example |
-|---|---|
-| Historical Plant Name | Name found in manuscript |
-| Modern Scientific Name | Candidate scientific identification |
-| Plant Part | Root |
-| Traditional Use | Use described in historical text |
-| Preparation | Decoction |
-| Historical Source | Manuscript title |
-| Extraction Confidence | 0.91 |
-| Mapping Confidence | 0.78 |
-| Review Status | Pending verification |
-
-*Illustrative example only. These values do not represent verified historical findings.*
-
-## 9. AI and NLP Technologies
-
-The project will demonstrate several AI/NLP techniques.
-
-| Technology | Purpose |
-|---|---|
-| OCR | Extract text from historical scanned documents |
-| Named Entity Recognition (NER) | Identify plants, ingredients, and relevant entities |
-| Relation Extraction | Identify relationships between plants, parts, preparations, and uses |
-| Entity Linking | Connect historical plant names with modern botanical references |
-| Confidence Estimation | Estimate extraction and identification uncertainty |
-| Human-in-the-loop Review | Allow expert verification of extracted information |
-
-The implementation can begin with existing NLP models and rule-based methods. Fine-tuning or specialised models can be considered based on evaluation results.
-
-## 10. Evaluation Strategy
-
-The system will be evaluated through several measurable criteria:
-
-- **OCR Accuracy:** Compare extracted text against expert-corrected transcriptions.
-- **Entity Recognition:** Evaluate precision, recall, and F1-score.
-- **Relation Extraction:** Measure the accuracy of relationships between plants, parts, preparations, and traditional uses.
-- **Botanical Mapping:** Manually evaluate historical-to-modern plant name matches.
-- **Source Traceability:** Verify that extracted information links to the correct original passage.
-- **Usability:** Evaluate how efficiently users can search and explore the knowledge.
-
-HIMERA will be used only for evaluation tasks that match its available annotation categories. Additional manually annotated examples may be created when necessary.
-
-## 11. Scope and Limitations
-
-The initial prototype will focus on a selected collection of historical recipes and botanical texts.
-
-Potential challenges include:
-
-- OCR errors and difficult historical handwriting.
-- Historical spelling and language variations.
-- Ambiguous plant names.
-- Changes in botanical classification over time.
-- Incomplete or contradictory historical descriptions.
-- Incorrect AI-generated extractions.
-- Different dataset access and licensing restrictions.
-
-All extracted information will retain its historical context and supporting evidence.
-
-**EthnoLens AI is a historical knowledge preservation and research platform. It does not validate the medical effectiveness of historical remedies and does not provide medical advice or treatment recommendations.**
-
-## 12. Expected Outcome
-
-The expected outcome is a functional prototype demonstrating how AI and NLP can transform historical medicinal-plant knowledge into structured, searchable information.
-
-The prototype should include:
-
-1. A selected collection of historical documents.
-2. A document ingestion and OCR pipeline.
-3. An NLP-based knowledge extraction component.
-4. Historical plant name normalisation.
-5. Modern botanical name mapping.
-6. A structured database with source references.
-7. A web dashboard for searching, filtering, and exploring information.
-8. An evaluation of extraction and mapping performance.
-
-## 13. Project Value
-
-EthnoLens AI combines Artificial Intelligence, Natural Language Processing, digital humanities, and botanical knowledge in a practical research-oriented platform.
-
-Its main value is not simply generating answers about medicinal plants, but transforming historical information into structured knowledge while preserving the evidence behind every extracted fact.
-
-By connecting historical documents with modern botanical terminology, EthnoLens AI can support researchers, libraries, students, and anyone interested in the history of traditional plant knowledge.
+> **EthnoLens AI is a historical research and heritage-preservation platform. It does not provide medical advice, does not recommend treatments or dosages, and does not validate the effectiveness of historical remedies.**
 
 ---
 
-**Project Name:** EthnoLens AI  
-**Track:** Track 1 — Historical Knowledge to Structured Knowledge  
-**Core Concept:** Historical Documents → OCR → AI/NLP → Knowledge Extraction → Botanical Mapping → Searchable Knowledge System
+## 1. Overview
 
-**Important:** EthnoLens AI is a historical research and knowledge-preservation platform, not a medical advice or treatment system.
+**EthnoLens AI** turns historical botanical and medicinal documents into an interactive, searchable digital archive.
+
+For centuries, knowledge about plants, the properties attributed to them, and the ways they were prepared has been preserved in manuscripts, old books, traditional recipes and botanical works. Much of it remains hard to reach: it is written in historical languages and spellings, stored in formats that are difficult to search, and scattered across collections.
+
+EthnoLens AI connects this heritage with modern technology. Using OCR, NLP and large language models, the platform reads historical documents and identifies:
+
+- plant names as they appear in the original text,
+- other ingredients,
+- the plant parts used (leaf, root, seed, flower, bark…),
+- traditional preparation methods (infusion, decoction, powder, ointment…),
+- the uses described in the source.
+
+It then organises everything into a structured database, where **every record keeps its source, the original passage and a confidence level.**
+
+The initial regional focus is **Kosovo, Albania and the wider Balkans**.
+
+---
+
+## 2. The Problem
+
+Researchers who work with historical plant knowledge typically have to:
+
+- search manually through hundreds of scanned pages,
+- interpret old terminology, spelling variants and languages (Latin, Middle English, old Albanian…),
+- work out which modern plant a historical name refers to, often with no certain answer,
+- keep track of exactly where each piece of information came from.
+
+As a result, historical knowledge is hard to analyse systematically, compare across sources or connect to modern botany. Local plant names and regional traditions are especially at risk of being lost.
+
+---
+
+## 3. What Makes EthnoLens Different
+
+| Principle | What it means in practice |
+|---|---|
+| **Evidence first** | Every extracted fact links to its source document, page and original passage. |
+| **Honest uncertainty** | Every record carries an extraction confidence and a botanical-mapping confidence. Uncertain identifications are marked as *candidates* and are never shown as facts. |
+| **Stated vs. inferred** | The platform distinguishes what the historical text *says* from what the AI or a botanical reference *infers*. |
+| **Historical ↔ modern names** | Historical and local plant names are linked to current scientific names, so traditional names are preserved and changes over time stay visible. |
+| **Grounded AI answers** | Ask EthnoLens answers only from documents in the archive and cites its sources. If there is no source, it says so. |
+
+---
+
+## 4. Core Features
+
+### 4.1 Scan & Discover
+Upload a historical document as a PDF or image. EthnoLens:
+1. runs OCR on printed pages, or uses the existing transcription when one is available. HTR for handwritten uploads is planned (see [Roadmap](#11-roadmap));
+2. extracts plants, ingredients, parts, preparations and described uses;
+3. highlights each extracted item **on the original page/passage**, so the user can check it immediately;
+4. sends low-confidence items to a review queue.
+
+### 4.2 Historical Archive
+A searchable archive of every extracted record. Users can:
+- search by historical name, local name or modern scientific name;
+- filter by plant part, preparation, language, source, period or region;
+- open a plant page that shows all of its historical mentions side by side;
+- compare how different sources describe the same plant.
+
+### 4.3 EthnoMap
+An interactive map of botanical heritage by region. It shows local plant names from documented historical sources and ethnobotanical field records, **only where a documented source exists.** Each point indicates whether it comes from a historical document or a modern field study. The first version covers Kosovo, Albania and the Balkans.
+
+### 4.4 Ask EthnoLens
+An AI research assistant for questions about the archive, for example *"Which sources mention sage, and how was it prepared?"*
+
+- It retrieves the relevant passages first (retrieval-augmented generation), then answers.
+- Every answer includes **citations** to the documents and passages it used.
+- If the archive has no evidence, it says so instead of guessing.
+- It **refuses** to give medical advice, dosages or treatment recommendations.
+
+### MVP priority
+For the first prototype, the end-to-end path is **Scan & Discover → Historical Archive → Ask EthnoLens**. EthnoMap starts as a lightweight view of the records that already have a region, and grows as Balkan sources are added.
+
+---
+
+## 5. Example: From Manuscript to Archive Record
+
+> *Illustrative example of the record format only. It is not a verified extraction or a historical finding.*
+
+A Middle English recipe mentions **"sauge"**. EthnoLens creates the following record:
+
+| Field | Value |
+|---|---|
+| Historical name (as written) | `sauge` |
+| Normalised historical name | sage |
+| Candidate scientific name | *Salvia officinalis* L. |
+| Mapping confidence | High (common, well-attested name) |
+| Albanian local name | sherebelë |
+| Plant part | leaf |
+| Preparation | `[as stated in passage]` |
+| Described use | `[as stated in passage, quoted verbatim]` |
+| Source | `[manuscript ID, folio]` |
+| Original passage | `[exact transcribed text]` |
+| Evidence type | Plant & part: *stated*; scientific name: *inferred* |
+| Review status | Pending verification |
+
+The same plant page then collects mentions from other manuscripts, from BHL botanical works and from Balkan ethnobotanical field records, and EthnoMap shows the regions where a local name is documented.
+
+---
+
+## 6. Data Sources
+
+| Source | Role | Notes |
+|---|---|---|
+| [Curious Cures in Cambridge Libraries](https://www.lib.cam.ac.uk/curiouscures) ([CUDL collection](https://cudl.lib.cam.ac.uk/collections/medievalmedicalrecipes)) | Primary historical medical recipes | 190 manuscript volumes (186 listed on CUDL), 7,000+ pages and 7,738 identified texts in Latin and Middle English. **1,179 texts were transcribed in full** (mostly recipes and charms), and these are the demo corpus. The project did not transcribe every recipe. EthnoLens does not run HTR itself. |
+| [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/) ([HF dataset](https://huggingface.co/datasets/common-pile/biodiversity_heritage_library)) | Historical printed botanical literature | Printed pages and OCR text. Supplies historical terminology and botanical context. |
+| [Mustafa et al. (2012), *Medical ethnobotany of the Albanian Alps in Kosovo*](https://ethnobiomed.biomedcentral.com/articles/10.1186/1746-4269-8-6) | Balkan ethnobotanical field record for EthnoMap | *Journal of Ethnobiology and Ethnomedicine* 8:6, open access (CC BY). Fieldwork in 36 villages with 91 informants, documenting 98 plant species and their Albanian local names. This is a **modern field study, not a historical document**, and is labelled as such. |
+| [World Flora Online](https://www.worldfloraonline.org/) / [POWO](https://powo.science.kew.org/) / [GBIF Backbone](https://www.gbif.org/) | Taxonomic reference | Accepted scientific names and synonyms, used to map historical names to modern ones. |
+| [HIMERA](https://www.nactem.ac.uk/himera/) | Secondary NLP evaluation | Expert-annotated historical medical texts. Its annotations focus on medical concepts (conditions, symptoms, etc.) rather than plant names, parts or preparations, so it is used only for the overlapping categories. |
+| [FineBooks BHL IMPACT GT](https://huggingface.co/datasets/finebooks/bhl-impact-gt) | OCR evaluation | 2,165 page scans from six natural-history books (1708–1913), with expert transcriptions. CC BY 3.0. |
+
+Before implementation, the team will verify the availability, format and **licence** of each source. Some digitised manuscript images have restrictions on reuse.
+
+> **Critical dependency: Curious Cures transcriptions.**
+> The demo, the main evaluation set and the example in Section 5 all depend on the 1,179 transcriptions being accessible from CUDL in a usable form (text/TEI export, or copyable per item), under a licence that allows this use. **Status: to be verified by the team.**
+>
+> If they are not accessible, this is a **change of demo plan**, not a silent fallback:
+> - the primary corpus switches to BHL printed botanical works through OCR;
+> - recipe-specific fields (preparation, other ingredients, described use) will often be empty, so the demo focuses on plant names, parts, historical terminology and taxonomic mapping;
+> - the hand-annotated evaluation set is built from ~50 BHL pages instead;
+> - the Section 5 example and the demo targets are updated to a BHL source.
+
+---
+
+## 7. System Architecture
+
+```text
+                 HISTORICAL & REGIONAL SOURCES
+     Curious Cures | BHL | Balkan studies | User uploads
+                            |
+                            v
+                    DOCUMENT INGESTION
+          PDFs, images, transcriptions, metadata
+                            |
+              +-------------+-------------+
+              v                           v
+         OCR (printed)       HTR (handwritten, planned)
+              +-------------+-------------+
+                            v
+                   TEXT PREPROCESSING
+     cleaning, segmentation, language detection,
+          historical spelling preserved
+                            |
+                            v
+                  AI / NLP EXTRACTION
+   plants | ingredients | parts | preparation | uses
+                            |
+                            v
+                  ENTITY NORMALISATION
+           spelling variants, local names
+                            |
+                            v
+                 TAXONOMIC MAPPING
+       candidate scientific names (WFO / POWO / GBIF)
+             + mapping confidence
+                            |
+                            v
+           STRUCTURED DATABASE + VECTOR INDEX
+          records, sources, passages, regions
+                            |
+     +-----------+----------+-----------+-------------+
+     v           v                      v             v
+ Scan &      Historical              EthnoMap       Ask
+ Discover    Archive                                EthnoLens (RAG)
+                            |
+                            v
+                HUMAN-IN-THE-LOOP REVIEW
+          verify / correct / reject low-confidence items
+```
+
+---
+
+## 8. Data Model
+
+| Field | Description |
+|---|---|
+| Historical Plant Name | Name exactly as written in the source |
+| Normalised Plant Name | Standardised historical name |
+| Local / Vernacular Name | Regional name (e.g., Albanian), when documented |
+| Candidate Scientific Name | Modern accepted name from the taxonomic reference |
+| Plant Part | Leaf, root, seed, flower, bark, etc. |
+| Described Use | The use as described in the source, quoted rather than paraphrased into a medical claim |
+| Preparation Method | Infusion, decoction, powder, ointment, etc. |
+| Other Ingredients | Additional ingredients in the recipe |
+| Source | Book, manuscript or collection |
+| Page / Folio Reference | Location of the passage |
+| Original Passage | Supporting text |
+| Language | Language of the source |
+| Region | Geographic region, when documented |
+| Period | Date or period of the source |
+| Evidence Type | *Stated* in source or *inferred* by AI/reference |
+| Extraction Confidence | Confidence in the AI/NLP extraction |
+| Mapping Confidence | Confidence in the botanical identification |
+| Review Status | Pending, verified or rejected |
+
+A single plant can have many historical names, local names, sources and uses.
+
+---
+
+## 9. AI & NLP Components
+
+| Technology | Purpose |
+|---|---|
+| OCR / HTR | Convert printed pages to text; HTR for handwritten pages is planned |
+| Named Entity Recognition | Identify plants, ingredients, parts and preparations |
+| Relation Extraction | Link plants to parts, preparations and described uses |
+| Entity Linking | Map historical and local names to taxonomic references |
+| Confidence Estimation | Score extraction and mapping uncertainty |
+| Retrieval-Augmented Generation | Answer questions only from archived passages, with citations |
+| Human-in-the-loop Review | Expert verification of uncertain records |
+
+The prototype starts with existing models, LLM-based extraction and rule-based methods. Specialised or fine-tuned models will be considered based on evaluation results.
+
+---
+
+## 10. Evaluation & Demo Targets
+
+| What | How it is measured |
+|---|---|
+| OCR quality | Character/word error rate against FineBooks ground truth |
+| Entity extraction | **Primary:** precision, recall and F1 on a hand-annotated sample of **~50 transcribed Curious Cures recipes** (plants, parts, preparations, uses). **Secondary:** HIMERA, for the overlapping medical-concept categories only. |
+| Relation extraction | Accuracy of plant–part–preparation–use links on the same hand-annotated sample |
+| Taxonomic mapping | Manual review of a sample of historical → scientific name matches |
+| Traceability | Share of records that link to the correct original passage (target: **100%**) |
+| Grounded answers | Share of Ask EthnoLens answers that cite a supporting passage. Unsupported questions must be declined. |
+| Usability | Time for a user to find all sources that mention a given plant (target: **< 1 minute**, compared with manual search) |
+
+**Demo targets (to be confirmed by the team):**
+- a curated subset of the 1,179 transcribed Curious Cures texts processed end to end;
+- a selection of BHL pages processed through OCR;
+- ~50 hand-annotated recipes as the extraction test set;
+- the Albanian Alps (Kosovo) field study integrated, with Albanian local names shown on EthnoMap;
+- every record traceable to its original passage.
+
+---
+
+## 11. Roadmap
+
+1. **MVP:** Scan & Discover on transcriptions and printed pages, Historical Archive, Ask EthnoLens with citations, and a basic EthnoMap.
+2. **Balkan expansion:** more Kosovo/Albania/Balkan sources and local names, and a richer EthnoMap.
+3. **Handwriting:** HTR for user-uploaded handwritten documents.
+4. **Collaboration:** review and annotation tools for researchers, students and cultural institutions.
+
+---
+
+## 12. Ethics, Licensing & Limitations
+
+- **Not medical advice.** Described uses are historical records, not recommendations. The assistant refuses requests for treatment or dosage advice.
+- **Uncertainty is shown, not hidden.** Ambiguous plant identifications remain *candidates* until they are reviewed.
+- **Attribution.** Traditional and local knowledge is used only from published sources, which are credited on every record.
+- **Licensing.** Each source is used according to its licence. Restricted material is linked, not redistributed.
+- **Known challenges:** OCR/HTR errors, historical spelling and language variation, ambiguous names, taxonomic changes over time, incomplete or contradictory sources, and AI extraction errors.
+
+---
+
+## 13. Who It Is For & Why It Matters
+
+- **Researchers** in ethnobotany, history of medicine and digital humanities
+- **Students** learning about historical sources and botany
+- **Libraries, museums and cultural institutions** that want their collections to be searchable
+- **The public** interested in local plant heritage
+
+EthnoLens AI is more than a digitisation tool. It turns historical plant knowledge into structured, connected and verifiable information, so that knowledge preserved in documents of the past does not remain locked in archives and becomes a living, searchable resource for everyone.
+
+---
+
+## 14. Tech Stack
+
+> *Proposed stack. It may change during implementation.*
+
+| Layer | Technology |
+|---|---|
+| Backend / API | Python, FastAPI |
+| Frontend | React + Vite |
+| Map | Leaflet (OpenStreetMap tiles) |
+| OCR | Tesseract (printed pages); HTR planned (e.g., Kraken or Transkribus) |
+| NLP / extraction | LLM-based structured extraction + spaCy for preprocessing |
+| LLM (Ask EthnoLens) | *To be decided* |
+| Database | PostgreSQL |
+| Vector search | pgvector |
+| Taxonomy | World Flora Online / GBIF APIs |
+
+---
+
+## 15. Repository Structure
+
+> *Coming soon. Planned layout:*
+
+```text
+EthnoLens-AI/
+├── backend/      # API, ingestion, OCR, extraction pipeline
+├── frontend/     # Web app: Scan & Discover, Archive, EthnoMap, Ask
+├── data/         # Source metadata and sample documents (no restricted material)
+├── evaluation/   # Annotated test set and evaluation scripts
+└── docs/         # Additional documentation
+```
+
+---
+
+## 16. Getting Started
+
+> *Coming soon.* Installation and local run instructions will be added once the first prototype is available.
+
+---
+
+## 17. Team
+
+- **Dafina Keqmezi**
+- **Erëza Ismajli**
+- **Jeta Syla**
+
+---
+
+**Project:** EthnoLens AI
+**Track:** Track 1: Historical Knowledge to Structured Knowledge
+**Core concept:** Historical documents → OCR → AI/NLP extraction → Taxonomic mapping → Searchable archive, map & grounded assistant
