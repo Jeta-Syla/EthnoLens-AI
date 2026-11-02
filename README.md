@@ -275,40 +275,58 @@ EthnoLens AI is more than a digitisation tool. It turns historical plant knowled
 
 ## 14. Tech Stack
 
-> *Proposed stack. It may change during implementation.*
-
 | Layer | Technology |
 |---|---|
-| Backend / API | Python, FastAPI |
-| Frontend | React + Vite |
-| Map | Leaflet (OpenStreetMap tiles) |
-| OCR | Tesseract (printed pages); HTR planned (e.g., Kraken or Transkribus) |
-| NLP / extraction | LLM-based structured extraction + spaCy for preprocessing |
-| LLM (Ask EthnoLens) | *To be decided* |
-| Database | PostgreSQL |
-| Vector search | pgvector |
-| Taxonomy | World Flora Online / GBIF APIs |
+| Backend / API | Python 3.11+, FastAPI, Pydantic |
+| Frontend | Streamlit, one page per feature |
+| Map | folium (Leaflet) + streamlit-folium |
+| OCR | Tesseract via pytesseract + pdf2image; HTR planned |
+| Extraction | LLM in JSON mode, validated against [`schema/record.json`](schema/record.json) |
+| LLM | *To be decided* |
+| Database | SQLite ([`backend/app/db.py`](backend/app/db.py)) |
+| Vector search (Ask EthnoLens) | Chroma |
+| Taxonomy | GBIF species match API |
 
 ---
 
 ## 15. Repository Structure
 
-> *Coming soon. Planned layout:*
-
 ```text
 EthnoLens-AI/
-├── backend/      # API, ingestion, OCR, extraction pipeline
-├── frontend/     # Web app: Scan & Discover, Archive, EthnoMap, Ask
-├── data/         # Source metadata and sample documents (no restricted material)
-├── evaluation/   # Annotated test set and evaluation scripts
-└── docs/         # Additional documentation
+├── backend/app/        # FastAPI app: main.py, models.py, db.py
+├── pipeline/           # ingest.py, ocr.py, extract.py, taxonomy.py, rag.py
+├── frontend/           # Streamlit app: Scan & Discover, Archive, EthnoMap, Ask
+├── schema/record.json  # The record contract shared by pipeline, API and frontend
+├── data/raw/           # Downloaded sources (not in Git)
+├── data/processed/     # Processed data, e.g. Albanian names CSV
+├── eval/               # annotations/ and metrics.py
+└── .env.example        # API keys template (the real .env is never committed)
 ```
 
 ---
 
 ## 16. Getting Started
 
-> *Coming soon.* Installation and local run instructions will be added once the first prototype is available.
+> Full installation and run instructions will be added once the first prototype is available.
+
+Create the local database:
+
+```bash
+python -m backend.app.db
+```
+
+### Git workflow
+
+| Branch | Owner | Scope |
+|---|---|---|
+| `main` | everyone | Working, demo-ready code only; merged from the branches below |
+| `data` | Dafina | Sources, OCR, database, GBIF mapping, API |
+| `ai` | Erëza | Extraction prompt, confidence, RAG, evaluation |
+| `ui` | Jeta | Streamlit frontend |
+
+- Pull `main` into your branch before starting work each day.
+- `.env` and `data/raw/` are never committed.
+- Any change to `schema/record.json` is announced to the whole team before it is made.
 
 ---
 

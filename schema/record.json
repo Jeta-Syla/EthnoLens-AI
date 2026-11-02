@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Jeta-Syla/EthnoLens-AI/schema/record.json",
+  "title": "EthnoLens record",
+  "description": "One extracted plant mention, linked to the passage it came from. Every key is always present; unknown values are null. Changes to this file are announced to the whole team before they are made.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "historical_name", "normalised_name", "local_name", "candidate_scientific_name",
+    "plant_part", "preparation", "described_use", "other_ingredients",
+    "source", "folio", "passage", "span", "language", "region", "period",
+    "evidence", "extraction_confidence", "mapping_confidence", "review_status"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^rec_[0-9]{4,}$",
+      "description": "Record id, e.g. rec_0001."
+    },
+    "historical_name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Plant name exactly as written in the passage, historical spelling preserved."
+    },
+    "normalised_name": {
+      "type": ["string", "null"],
+      "description": "Standardised historical/common name, e.g. \"sage\"."
+    },
+    "local_name": {
+      "type": ["string", "null"],
+      "description": "Albanian local name from a documented source (e.g. Mustafa et al. 2012), never invented."
+    },
+    "candidate_scientific_name": {
+      "type": ["string", "null"],
+      "description": "Scientific name with author as returned by GBIF, e.g. \"Salvia officinalis L.\". A candidate, not a confirmed identification."
+    },
+    "plant_part": {
+      "type": ["string", "null"],
+      "description": "Lowercase English singular: leaf, root, seed, flower, bark, fruit, whole plant, ..."
+    },
+    "preparation": {
+      "type": ["string", "null"],
+      "description": "Preparation method as stated in the passage."
+    },
+    "described_use": {
+      "type": ["string", "null"],
+      "description": "Use as described in the passage, quoted rather than turned into a medical claim."
+    },
+    "other_ingredients": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Other ingredients named in the same recipe."
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Citation of the document, e.g. \"MS Add. 9308\"."
+    },
+    "folio": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Folio label (e.g. \"2r\") or page number."
+    },
+    "passage": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Exact transcribed or OCR text of the passage."
+    },
+    "span": {
+      "type": ["array", "null"],
+      "prefixItems": [
+        { "type": "integer", "minimum": 0 },
+        { "type": "integer", "minimum": 0 }
+      ],
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "[start, end) character offsets of historical_name in passage. null when the name is not found verbatim."
+    },
+    "language": {
+      "type": ["string", "null"],
+      "description": "Language of the source, e.g. \"Middle English\", \"Latin\"."
+    },
+    "region": {
+      "type": ["string", "null"],
+      "description": "Geographic region, only when documented."
+    },
+    "period": {
+      "type": ["string", "null"],
+      "description": "Date or period of the source, e.g. \"c. 1400\"."
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plant", "scientific_name"],
+      "properties": {
+        "plant": { "enum": ["stated", "inferred"] },
+        "scientific_name": { "enum": ["stated", "inferred"] }
+      },
+      "description": "Whether each value is stated in the source or inferred by the AI/a reference."
+    },
+    "extraction_confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Confidence in the extraction. Lowered when the name is not found verbatim."
+    },
+    "mapping_confidence": {
+      "enum": ["high", "medium", "candidate", null],
+      "description": "GBIF match: EXACT with confidence >= 90 -> high; FUZZY -> medium; otherwise candidate. null when there is no scientific name."
+    },
+    "review_status": {
+      "enum": ["pending", "verified", "rejected"]
+    }
+  },
+  "examples": [
+    {
+      "id": "rec_0001",
+      "historical_name": "sauge",
+      "normalised_name": "sage",
+      "local_name": "sherebelë",
+      "candidate_scientific_name": "Salvia officinalis L.",
+      "plant_part": "leaf",
+      "preparation": "[as stated in passage]",
+      "described_use": "[as stated in passage]",
+      "other_ingredients": [],
+      "source": "MS Add. 9308",
+      "folio": "[folio]",
+      "passage": "[exact transcribed text]",
+      "span": [0, 5],
+      "language": "Middle English",
+      "region": null,
+      "period": "c. 1400",
+      "evidence": { "plant": "stated", "scientific_name": "inferred" },
+      "extraction_confidence": 0.9,
+      "mapping_confidence": "high",
+      "review_status": "pending"
+    }
+  ]
+}
