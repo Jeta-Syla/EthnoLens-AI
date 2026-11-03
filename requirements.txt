@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pydantic
+chromadb
+pytesseract
+pdf2image
+requests
+python-dotenv
+streamlit
+folium
+streamlit-folium
