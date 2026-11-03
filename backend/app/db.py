@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS records (
 CREATE TABLE IF NOT EXISTS plant_names (
     id              INTEGER PRIMARY KEY,
     canonical_name  TEXT NOT NULL,            -- scientific name without author
-    local_name      TEXT NOT NULL,            -- e.g. "sherebelë"
+    local_name      TEXT NOT NULL,            -- e.g. "Sherbela"
     language        TEXT NOT NULL DEFAULT 'Albanian',
     region          TEXT,                     -- e.g. "Albanian Alps, Kosovo"
     source          TEXT NOT NULL,            -- e.g. "Mustafa et al. 2012"

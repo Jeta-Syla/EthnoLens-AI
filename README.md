@@ -94,7 +94,7 @@ A Middle English recipe mentions **"sauge"**. EthnoLens creates the following re
 | Normalised historical name | sage |
 | Candidate scientific name | *Salvia officinalis* L. |
 | Mapping confidence | High (common, well-attested name) |
-| Albanian local name | sherebelë |
+| Albanian local name | Sherbela (Mustafa et al. 2012) |
 | Plant part | leaf |
 | Preparation | `[as stated in passage]` |
 | Described use | `[as stated in passage, quoted verbatim]` |
