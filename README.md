@@ -313,10 +313,11 @@ EthnoLens-AI/
 
 > Full installation and run instructions will be added once the first prototype is available.
 
-Create the local database:
+Create the local database and start the API (docs at http://localhost:8000/docs):
 
 ```bash
 python -m backend.app.db
+uvicorn backend.app.main:app --reload
 ```
 
 ### Git workflow
