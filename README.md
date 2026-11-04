@@ -5,6 +5,25 @@
 
 ---
 
+## Project Status
+
+*Updated 4 November 2026. This prototype was built during EthnoHack 2026; the table says honestly what works and what does not yet.*
+
+| Part | Status | Details |
+|---|---|---|
+| Curious Cures ingestion | ✅ Works | 183 transcribed pages of MS Add. 9308 downloaded from CUDL, split into 221 recipes; 100 loaded into the database with source, folio, language and period |
+| Record contract and database | ✅ Works | [`schema/record.json`](schema/record.json), SQLite schema, Pydantic models |
+| API | ✅ Works | `GET /health`, `GET /records` (search and filters), `POST /documents` (text and images; PDFs need Poppler) |
+| OCR | ✅ Works | Tesseract on 25 BHL page scans: mean character error rate **2.7%** (about 1.2% on prose pages, 38% on a two-column contents page) |
+| Albanian local names | ✅ Works | 100 names for 98 species from Mustafa et al. (2012) |
+| Streamlit frontend | 🟡 In progress | Four pages (Scan & Discover, Archive, EthnoMap, Ask); falls back to illustrative mock records when the API has no data |
+| LLM extraction | 🟡 In progress | Prompt and validation against the record contract |
+| GBIF mapping, Ask EthnoLens (RAG) | ⏳ Not started | Planned for 5 November |
+| Evaluation on 50 annotated recipes | 🟡 In progress | 17 recipes annotated with AI assistance (34 plant mentions); 33 being annotated by hand |
+| Handwritten text recognition (HTR) | ❌ Not planned for the prototype | See [Roadmap](#11-roadmap) |
+
+---
+
 ## 1. Overview
 
 **EthnoLens AI** turns historical botanical and medicinal documents into an interactive, searchable digital archive.
@@ -84,26 +103,28 @@ For the first prototype, the end-to-end path is **Scan & Discover → Historical
 
 ## 5. Example: From Manuscript to Archive Record
 
-> *Illustrative example of the record format only. It is not a verified extraction or a historical finding.*
+> *A real passage with the record written by hand to show the target format. It is not pipeline output and not a verified identification.*
 
-A Middle English recipe mentions **"sauge"**. EthnoLens creates the following record:
+[MS Add. 9308, f. 5v](https://cudl.lib.cam.ac.uk/view/MS-ADD-09308/24), a Middle English recipe book of the late 14th/early 15th century:
+
+> *For þe coughe . tak sauge and rue and comyn and pouder of peper and seth hem to gedere in hony and mak a letuarie and vse þerof a sponful at euen . and an oþer at morwen .*
 
 | Field | Value |
 |---|---|
 | Historical name (as written) | `sauge` |
-| Normalised historical name | sage |
-| Candidate scientific name | *Salvia officinalis* L. |
-| Mapping confidence | High (common, well-attested name) |
-| Albanian local name | Sherbela (Mustafa et al. 2012) |
-| Plant part | leaf |
-| Preparation | `[as stated in passage]` |
-| Described use | `[as stated in passage, quoted verbatim]` |
-| Source | `[manuscript ID, folio]` |
-| Original passage | `[exact transcribed text]` |
-| Evidence type | Plant & part: *stated*; scientific name: *inferred* |
-| Review status | Pending verification |
+| Normalised name | sage |
+| Candidate scientific name | *Salvia officinalis* L. (*inferred*) |
+| Mapping confidence | from the GBIF match: high only for an exact match with confidence ≥ 90 |
+| Albanian local name | Sherbela ([Mustafa et al. 2012](https://doi.org/10.1186/1746-4269-8-6)) |
+| Plant part | *empty*: the passage does not say which part |
+| Preparation | "seth hem to gedere in hony and mak a letuarie" |
+| Described use | "For þe coughe" |
+| Other ingredients | rue, comyn, pouder of peper, hony |
+| Source | MS Add. 9308, f. 5v |
+| Evidence type | plant: *stated*; scientific name: *inferred* |
+| Review status | pending |
 
-The same plant page then collects mentions from other manuscripts, from BHL botanical works and from Balkan ethnobotanical field records, and EthnoMap shows the regions where a local name is documented.
+The plant part stays empty rather than guessed. The same plant page then collects other mentions of sage in the archive (for example ff. 4r and 24r–25r of the same manuscript) and shows where the Albanian name is documented on EthnoMap.
 
 ---
 
@@ -111,27 +132,13 @@ The same plant page then collects mentions from other manuscripts, from BHL bota
 
 | Source | Role | Notes |
 |---|---|---|
-| [Curious Cures in Cambridge Libraries](https://www.lib.cam.ac.uk/curiouscures) ([CUDL collection](https://cudl.lib.cam.ac.uk/collections/medievalmedicalrecipes)) | Primary historical medical recipes | 190 manuscript volumes (186 listed on CUDL), 7,000+ pages and 7,738 identified texts in Latin and Middle English. **1,179 texts were transcribed in full** (mostly recipes and charms), and these are the demo corpus. The project did not transcribe every recipe. EthnoLens does not run HTR itself. |
-| [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/) ([HF dataset](https://huggingface.co/datasets/common-pile/biodiversity_heritage_library)) | Historical printed botanical literature | Printed pages and OCR text. Supplies historical terminology and botanical context. |
-| [Mustafa et al. (2012), *Medical ethnobotany of the Albanian Alps in Kosovo*](https://ethnobiomed.biomedcentral.com/articles/10.1186/1746-4269-8-6) | Balkan ethnobotanical field record for EthnoMap | *Journal of Ethnobiology and Ethnomedicine* 8:6, open access (CC BY). Fieldwork in 36 villages with 91 informants, documenting 98 plant species and their Albanian local names. This is a **modern field study, not a historical document**, and is labelled as such. |
-| [World Flora Online](https://www.worldfloraonline.org/) / [POWO](https://powo.science.kew.org/) / [GBIF Backbone](https://www.gbif.org/) | Taxonomic reference | Accepted scientific names and synonyms, used to map historical names to modern ones. |
-| [HIMERA](https://www.nactem.ac.uk/himera/) | Secondary NLP evaluation | Expert-annotated historical medical texts. Its annotations focus on medical concepts (conditions, symptoms, etc.) rather than plant names, parts or preparations, so it is used only for the overlapping categories. |
-| [FineBooks BHL IMPACT GT](https://huggingface.co/datasets/finebooks/bhl-impact-gt) | OCR evaluation | 2,165 page scans from six natural-history books (1708–1913), with expert transcriptions. CC BY 3.0. |
+| [Curious Cures in Cambridge Libraries](https://www.lib.cam.ac.uk/curiouscures) ([CUDL collection](https://cudl.lib.cam.ac.uk/collections/medievalmedicalrecipes)) | Primary historical medical recipes | The collection has 190 manuscript volumes and 1,179 texts transcribed in full (mostly recipes and charms). **The prototype uses [MS Add. 9308](https://cudl.lib.cam.ac.uk/view/MS-ADD-09308)** (*Medical recipes and charms*, Middle English with some Latin, late 14th/early 15th century): 183 of its 194 pages have a diplomatic transcription. EthnoLens does not run HTR itself. |
+| [Mustafa et al. (2012), *Medical ethnobotany of the Albanian Alps in Kosovo*](https://ethnobiomed.biomedcentral.com/articles/10.1186/1746-4269-8-6) | Albanian local names for EthnoMap | *Journal of Ethnobiology and Ethnomedicine* 8:6, CC BY 2.0. Fieldwork in 36 villages with 91 informants; Table 1 gives 98 species with their Albanian folk names. This is a **modern field study, not a historical document**, and is labelled as such. |
+| [FineBooks BHL IMPACT GT](https://huggingface.co/datasets/finebooks/bhl-impact-gt) | OCR on printed pages and its evaluation | 2,165 [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/) page scans from six natural-history books (1708–1913), with expert transcriptions. CC BY 3.0. The BHL website blocks automated downloads, so BHL pages are taken from this dataset. |
+| [GBIF](https://www.gbif.org/) species match API (`https://api.gbif.org/v1/species/match`) | Taxonomic reference | Candidate scientific names and match confidence for historical and local names. |
+| [HIMERA](https://www.nactem.ac.uk/himera/) | Optional, not used yet | Expert-annotated historical medical texts. Its annotations cover medical concepts rather than plant names, parts or preparations, so the main evaluation uses our own hand-annotated recipes instead. |
 
-Before implementation, the team will verify the availability, format and **licence** of each source. Some digitised manuscript images have restrictions on reuse.
-
-> **Critical dependency: Curious Cures transcriptions.**
-> The demo, the main evaluation set and the example in Section 5 all depend on the 1,179 transcriptions being accessible from CUDL in a usable form (text/TEI export, or copyable per item), under a licence that allows this use.
->
-> **Status (checked 2 Nov 2026 on MS Add. 9308):** accessible. 183 of 194 pages have a diplomatic transcription, served as HTML by CUDL's transcription service and linked from the item JSON (`transcriptionDiplomaticURL`). The transcription licence is not stated (images: CC BY-NC 3.0; metadata: CC BY-NC-ND 3.0), so transcribed text stays in `data/raw/` and is not redistributed. The licence will be confirmed with Cambridge University Library.
->
-> **Decision (2 Nov 2026):** Curious Cures is the primary demo corpus. BHL remains supporting material for printed botanical terminology and OCR evaluation.
->
-> If they are not accessible, this is a **change of demo plan**, not a silent fallback:
-> - the primary corpus switches to BHL printed botanical works through OCR;
-> - recipe-specific fields (preparation, other ingredients, described use) will often be empty, so the demo focuses on plant names, parts, historical terminology and taxonomic mapping;
-> - the hand-annotated evaluation set is built from ~50 BHL pages instead;
-> - the Section 5 example and the demo targets are updated to a BHL source.
+> **Licence of the Curious Cures transcriptions.** CUDL does not state a licence for the transcriptions (images: CC BY-NC 3.0; metadata: CC BY-NC-ND 3.0). The transcribed text is therefore **not included in this repository**: scripts download it into `data/raw/` (see [Getting Started](#16-getting-started)). The team will ask Cambridge University Library to confirm the licence.
 
 ---
 
@@ -139,7 +146,7 @@ Before implementation, the team will verify the availability, format and **licen
 
 ```text
                  HISTORICAL & REGIONAL SOURCES
-     Curious Cures | BHL | Balkan studies | User uploads
+   Curious Cures | BHL (FineBooks) | Mustafa et al. | User uploads
                             |
                             v
                     DOCUMENT INGESTION
@@ -164,7 +171,7 @@ Before implementation, the team will verify the availability, format and **licen
                             |
                             v
                  TAXONOMIC MAPPING
-       candidate scientific names (WFO / POWO / GBIF)
+            candidate scientific names (GBIF)
              + mapping confidence
                             |
                             v
@@ -230,20 +237,20 @@ The prototype starts with existing models, LLM-based extraction and rule-based m
 
 | What | How it is measured |
 |---|---|
-| OCR quality | Character/word error rate against FineBooks ground truth |
-| Entity extraction | **Primary:** precision, recall and F1 on a hand-annotated sample of **~50 transcribed Curious Cures recipes** (plants, parts, preparations, uses). **Secondary:** HIMERA, for the overlapping medical-concept categories only. |
+| OCR quality | Character error rate against FineBooks ground truth. **Result: 2.7% mean CER on 25 pages** (`python -m pipeline.ocr`) |
+| Entity extraction | Precision, recall and F1 on **50 Curious Cures recipes annotated by the team** (17/17/16 per team member; [`eval/annotations/`](eval/annotations/)). One set of 17 recipes (rows marked `[AI-assisted]`) was annotated with AI assistance rather than independently by a person, so metrics are also reported on the 33 recipes annotated by hand alone. A match is the same plant and part, ignoring case. |
 | Relation extraction | Accuracy of plant–part–preparation–use links on the same hand-annotated sample |
 | Taxonomic mapping | Manual review of a sample of historical → scientific name matches |
 | Traceability | Share of records that link to the correct original passage (target: **100%**) |
 | Grounded answers | Share of Ask EthnoLens answers that cite a supporting passage. Unsupported questions must be declined. |
 | Usability | Time for a user to find all sources that mention a given plant (target: **< 1 minute**, compared with manual search) |
 
-**Demo targets (to be confirmed by the team):**
-- a curated subset of the 1,179 transcribed Curious Cures texts processed end to end;
-- a selection of BHL pages processed through OCR;
-- ~50 hand-annotated recipes as the extraction test set;
-- the Albanian Alps (Kosovo) field study integrated, with Albanian local names shown on EthnoMap;
-- every record traceable to its original passage.
+**Demo targets:**
+- 100 recipes from MS Add. 9308 processed end to end (loaded ✅, extraction in progress);
+- 25 BHL pages processed through OCR ✅;
+- 50 hand-annotated recipes as the extraction test set (in progress);
+- the Albanian Alps (Kosovo) field study integrated, with Albanian local names shown on EthnoMap (names ✅, map in progress);
+- every record traceable to its original passage (enforced by the database: each record belongs to a passage).
 
 ---
 
@@ -311,13 +318,40 @@ EthnoLens-AI/
 
 ## 16. Getting Started
 
-> Full installation and run instructions will be added once the first prototype is available.
+### 1. Prerequisites
 
-Create the local database and start the API (docs at http://localhost:8000/docs):
+- **Python 3.11+**
+- **Tesseract OCR**, for images and PDFs ([Windows installer](https://github.com/UB-Mannheim/tesseract/wiki), `brew install tesseract`, or `sudo apt install tesseract-ocr`). On Windows, if it is not on `PATH`, set `TESSERACT_CMD` in `.env`.
+- **Poppler**, only for PDF uploads (`brew install poppler`, `sudo apt install poppler-utils`, or the Windows build from [poppler-windows](https://github.com/oschwartz10612/poppler-windows/releases)).
+
+### 2. Install
 
 ```bash
-python -m backend.app.db
-uvicorn backend.app.main:app --reload
+git clone https://github.com/Jeta-Syla/EthnoLens-AI.git
+cd EthnoLens-AI
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env               # Windows: copy .env.example .env
+```
+
+### 3. Get the data
+
+Some data cannot be redistributed, so it is **not in this repository**. These commands download it from the original sources (run from the repo root):
+
+| Data | In the repo? | How to get it |
+|---|---|---|
+| Curious Cures transcriptions (MS Add. 9308) | No, licence not stated | `python -m pipeline.ingest MS-ADD-09308` downloads 183 pages into `data/raw/cudl/` (about 3 minutes, 1 request per second) |
+| Recipes in the database | No, built locally | `python -m pipeline.load_cudl MS-ADD-09308` splits the pages into recipes and loads 100 into `data/ethnolens.db` |
+| Albanian local names | Yes: [`data/processed/albanian_names.csv`](data/processed/albanian_names.csv) (CC BY 2.0) | To rebuild it from the article: `python -m pipeline.albanian_names` |
+| BHL page scans for OCR | No, downloaded on demand | `python -m pipeline.ocr` OCRs 25 pages from FineBooks and reports the CER |
+| Recipe texts for annotation | No | `python -m eval.make_annotation_sets` writes them to `data/raw/annotation/` |
+
+### 4. Run
+
+```bash
+uvicorn backend.app.main:app --reload    # API, docs at http://localhost:8000/docs
+streamlit run frontend/Home.py           # frontend, in a second terminal
 ```
 
 ### Git workflow
@@ -337,9 +371,15 @@ uvicorn backend.app.main:app --reload
 
 ## 17. Team
 
-- **Dafina Keqmezi**
-- **Erëza Ismajli**
-- **Jeta Syla**
+- **Dafina Keqmezi**: data sources, OCR, database and API
+- **Erëza Ismajli**: AI extraction, Ask EthnoLens and evaluation
+- **Jeta Syla**: frontend and presentation
+
+---
+
+## 18. License
+
+The code is released under the [MIT License](LICENSE). The data keeps its own licence: Mustafa et al. (2012) is CC BY 2.0, FineBooks BHL IMPACT is CC BY 3.0, and the Curious Cures transcriptions are not redistributed here (see [Data Sources](#6-data-sources)).
 
 ---
 

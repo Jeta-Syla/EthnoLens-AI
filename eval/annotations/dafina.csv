@@ -1,18 +1,35 @@
 passage_id,folio,historical_name,plant_part,preparation,described_use,notes
-MS-ADD-09308:r001,1v–2r,,,,,
-MS-ADD-09308:r003,2r,,,,,
-MS-ADD-09308:r004,2r–2v,,,,,
-MS-ADD-09308:r005,2v,,,,,
-MS-ADD-09308:r006,2v–3r,,,,,
-MS-ADD-09308:r007,3r,,,,,
-MS-ADD-09308:r012,4r,,,,,
-MS-ADD-09308:r014,4r–4v,,,,,
-MS-ADD-09308:r015,4v,,,,,
-MS-ADD-09308:r017,5r,,,,,
-MS-ADD-09308:r018,5r,,,,,
-MS-ADD-09308:r020,5v,,,,,
-MS-ADD-09308:r021,5v,,,,,
-MS-ADD-09308:r022,5v,,,,,
-MS-ADD-09308:r023,5v–6r,,,,,
-MS-ADD-09308:r025,6r,,,,,
-MS-ADD-09308:r026,6r–6v,,,,,
+MS-ADD-09308:r001,1v–2r,verueyne,,sethe; wasch þy hed; plastre on þy molde,For heued ache,[AI-assisted]
+MS-ADD-09308:r001,1v–2r,beteyne,,sethe; wasch þy hed; plastre on þy molde,For heued ache,[AI-assisted]
+MS-ADD-09308:r001,1v–2r,wermod,,sethe; wasch þy hed; plastre on þy molde,For heued ache,[AI-assisted]
+MS-ADD-09308:r001,1v–2r,whete,,bren added to the plastre,For heued ache,"[AI-assisted] wheat bran: plant product, form not part"
+MS-ADD-09308:r003,2r,walwort,,"ious boiled with salt, hony, wex and encense; anoynte heued and temples",For vanite of þyn heued,"[AI-assisted] juice is a form, not a part"
+MS-ADD-09308:r003,2r,encense,,boiled with ious of walwort; anoynte,For vanite of þyn heued,[AI-assisted] frankincense: plant resin product
+MS-ADD-09308:r004,2r–2v,asch,shoot,"grene plantes burned, water from the ends kept; mixed and boiled; put in the ear",For euel heryng,[AI-assisted] 'grene plantes' read as young shoots
+MS-ADD-09308:r004,2r–2v,sengrene,,ious mixed and boiled; put in the ear,For euel heryng,[AI-assisted]
+MS-ADD-09308:r004,2r–2v,lekes,bulb,ious of þe nether ende; mixed and boiled; put in the ear,For euel heryng,[AI-assisted] 'nether ende of lekes' read as bulb
+MS-ADD-09308:r005,2v,sengrene,,"ious with gres of an el, boiled a litil; put in the ear",For euel heryng,[AI-assisted] 'Also' recipe: use taken from previous recipe r004
+MS-ADD-09308:r006,2v–3r,gynger,,"whit gynger rubbed to poudre with salt, tempered with whit wyn; anoynte eyen",For to clere þe siȝte . and for reede eyen,[AI-assisted] plant product; part not stated
+MS-ADD-09308:r007,3r,cool,leaf,"lef anointed with white of an ey, laid on eyen at bedtime",For watering eyen,"[AI-assisted] 'reed cool lef' = red cole (cabbage) leaf; colour adjective left out, as for 'whit gynger'"
+MS-ADD-09308:r012,4r,beteyne,,ious tempered with gotis melk; drink .iii. dayes,For him þat spateth blood,[AI-assisted]
+MS-ADD-09308:r014,4r–4v,laureol,,poudre tempered with hony,For a purgacioun,[AI-assisted]
+MS-ADD-09308:r015,4v,mynte,,ious wrung in to þe nose at bedtime,For stingeng breth þorw þe nose,[AI-assisted] passage holds two recipes; splitter missed 'To stroie'
+MS-ADD-09308:r015,4v,rue,,ious wrung in to þe nose at bedtime,For stingeng breth þorw þe nose,[AI-assisted] passage holds two recipes
+MS-ADD-09308:r015,4v,henbane,seed,laid on a glowing tile; fumes led to þe teth through a pipe of latoun,To stroie toth- ache of wermes,[AI-assisted] second recipe in the passage
+MS-ADD-09308:r015,4v,lek,seed,laid on a glowing tile; fumes led to þe teth through a pipe of latoun,To stroie toth- ache of wermes,[AI-assisted] second recipe in the passage
+MS-ADD-09308:r015,4v,encense,,poudre laid on a glowing tile; fumes to þe teth,To stroie toth- ache of wermes,[AI-assisted] frankincense: plant resin product
+MS-ADD-09308:r017,5r,centorie,,"seethed in stal ale, brayed, strained, mixed with hony; .iii. sponful fasting",For to mak a man to haue talent to mete,[AI-assisted]
+MS-ADD-09308:r018,5r,centorie,,seethed in water; drink .iii. dayes,purgeth þe stomak and þe brest,[AI-assisted] 'Also' recipe: also continues r017 (appetite)
+MS-ADD-09308:r020,5v,fenel,root,"staumped with ache rote, tempered with wyn; drink",For swelleng in þe stomak,[AI-assisted]
+MS-ADD-09308:r020,5v,ache,root,"staumped with fenel rote, tempered with wyn; drink",For swelleng in þe stomak,[AI-assisted]
+MS-ADD-09308:r021,5v,loueache,root,"staumped, tempered with water; drink .iii. nyꝫtes",For thurst,[AI-assisted]
+MS-ADD-09308:r022,5v,sauge,,"seethed in hony with rue, comyn and peper; letuarie",For þe coughe,[AI-assisted]
+MS-ADD-09308:r022,5v,rue,,"seethed in hony with sauge, comyn and peper; letuarie",For þe coughe,[AI-assisted]
+MS-ADD-09308:r022,5v,comyn,,seethed in hony; letuarie,For þe coughe,[AI-assisted] part not stated
+MS-ADD-09308:r022,5v,peper,,pouder seethed in hony; letuarie,For þe coughe,[AI-assisted] plant product; powder is a form
+MS-ADD-09308:r023,5v–6r,horselue,root,"ground, seethed in water til half consumed, with pured hony; letuarye",For þe chinke,[AI-assisted]
+MS-ADD-09308:r023,5v–6r,coumfery,root,"ground, seethed in water til half consumed, with pured hony; letuarye",For þe chinke,[AI-assisted]
+MS-ADD-09308:r025,6r,rue,,"staumped with salt, tempered with ale or water; drink",For þe chinke,[AI-assisted] 'Also' recipe: use taken from previous recipe r023
+MS-ADD-09308:r026,6r–6v,ꝫarwe,,ious tempered with whete flour; cake baked in þe eymeres; eaten hot,For þe menisoun,[AI-assisted]
+MS-ADD-09308:r026,6r–6v,weybred,,ious tempered with whete flour; cake baked in þe eymeres; eaten hot,For þe menisoun,[AI-assisted]
+MS-ADD-09308:r026,6r–6v,whete,,flour made into a cake with þe ious,For þe menisoun,"[AI-assisted] wheat flour: plant product, form not part"
