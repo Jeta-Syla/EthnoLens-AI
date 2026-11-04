@@ -80,6 +80,14 @@ class Passage(BaseModel):
     method: Literal["transcription", "ocr", "manual"]
 
 
+class UploadResult(BaseModel):
+    """Response of POST /documents: what was stored, and the records extracted so far."""
+
+    document: Document
+    passages: list[Passage]
+    records: list[Record]
+
+
 class Health(BaseModel):
     status: Literal["ok"]
     database: Literal["ok"]

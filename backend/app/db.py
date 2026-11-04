@@ -125,6 +125,31 @@ def init_db(path: Path | str = DB_PATH) -> None:
         conn.executescript(SCHEMA)
 
 
+# Upserts never delete rows, so records already extracted from a passage are kept on reload.
+# (INSERT OR REPLACE would delete the old row and cascade-delete its records.)
+
+def upsert_document(conn: sqlite3.Connection, document: dict) -> None:
+    conn.execute(
+        """INSERT INTO documents (id, source, collection, title, url, language, period, region, licence)
+           VALUES (:id, :source, :collection, :title, :url, :language, :period, :region, :licence)
+           ON CONFLICT(id) DO UPDATE SET source=excluded.source, title=excluded.title, url=excluded.url,
+             language=excluded.language, period=excluded.period, region=excluded.region,
+             licence=excluded.licence""",
+        {"title": None, "url": None, "language": None, "period": None, "region": None, "licence": None,
+         **document},
+    )
+
+
+def upsert_passages(conn: sqlite3.Connection, passages: list[dict]) -> None:
+    conn.executemany(
+        """INSERT INTO passages (id, document_id, folio, seq, text, method)
+           VALUES (:id, :document_id, :folio, :seq, :text, :method)
+           ON CONFLICT(id) DO UPDATE SET folio=excluded.folio, seq=excluded.seq, text=excluded.text,
+             method=excluded.method""",
+        passages,
+    )
+
+
 if __name__ == "__main__":
     init_db()
     print(f"Database ready: {DB_PATH}")

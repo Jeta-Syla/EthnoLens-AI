@@ -85,7 +85,7 @@ def document_metadata(doc_id: str, item: dict) -> dict:
         "title": top["title"]["displayForm"],
         "url": f"https://cudl.lib.cam.ac.uk/view/{doc_id}",
         "language": languages["value"][0]["displayForm"] if languages else None,
-        "period": creation.get("dateDisplay", {}).get("displayForm"),
+        "period": creation.get("dateDisplay", {}).get("displayForm", "").rstrip(".") or None,
         "region": places[0]["displayForm"].rstrip(".") if places else None,
         "licence": "Transcription licence not stated; images CC BY-NC 3.0 (Cambridge University Library)",
     }
