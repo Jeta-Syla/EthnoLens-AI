@@ -88,6 +88,48 @@ class UploadResult(BaseModel):
     records: list[Record]
 
 
+class LocalName(BaseModel):
+    local_name: str
+    language: str
+    region: str | None
+    source: str
+
+
+class PlantPage(BaseModel):
+    """GET /plants/{name}: every mention of one species, plus its documented local names."""
+
+    canonical_name: str
+    local_names: list[LocalName]
+    records: list[Record]
+
+
+class MapPoint(BaseModel):
+    """One documented local name in a region. The frontend groups them into one marker per region."""
+
+    region: str
+    local_name: str
+    scientific_name: str
+    source: str
+    in_archive: int  # records in the archive for this species
+
+
+class AskRequest(BaseModel):
+    question: str = Field(min_length=1)
+
+
+class Citation(BaseModel):
+    source: str
+    folio: str
+    passage: str
+    passage_id: str
+
+
+class AskResponse(BaseModel):
+    answer: str
+    citations: list[Citation]
+    mode: Literal["rag", "search", "refused", "no_data"]
+
+
 class Health(BaseModel):
     status: Literal["ok"]
     database: Literal["ok"]

@@ -13,12 +13,13 @@
 |---|---|---|
 | Curious Cures ingestion | ✅ Works | 183 transcribed pages of MS Add. 9308 downloaded from CUDL, split into 221 recipes; 100 loaded into the database with source, folio, language and period |
 | Record contract and database | ✅ Works | [`schema/record.json`](schema/record.json), SQLite schema, Pydantic models |
-| API | ✅ Works | `GET /health`, `GET /records` (search and filters), `POST /documents` (text and images; PDFs need Poppler) |
+| API | ✅ Works | `GET /health`, `GET /records` (search and filters), `POST /documents` (text and images; PDFs need Poppler), `GET /plants/{scientific name}`, `GET /map`, `POST /ask` |
 | OCR | ✅ Works | Tesseract on 25 BHL page scans: mean character error rate **2.7%** (about 1.2% on prose pages, 38% on a two-column contents page) |
-| Albanian local names | ✅ Works | 100 names for 98 species from Mustafa et al. (2012) |
+| Albanian local names | ✅ Works | 100 names for 98 species from Mustafa et al. (2012), joined to records through GBIF accepted names (7 outdated names in the article resolved, e.g. *Matricaria recutita* → *M. chamomilla*) |
 | Streamlit frontend | 🟡 In progress | Four pages (Scan & Discover, Archive, EthnoMap, Ask); falls back to illustrative mock records when the API has no data |
 | LLM extraction | 🟡 In progress | Prompt and validation against the record contract |
-| GBIF mapping, Ask EthnoLens (RAG) | ⏳ Not started | Planned for 5 November |
+| GBIF mapping | ✅ Works | `pipeline/taxonomy.py`: high only for an exact species-level match; spelling variants are medium; genus-only, no match, or a near-miss that lands on a synonym stay *candidate* |
+| Ask EthnoLens (RAG) | 🟡 In progress | `POST /ask` already refuses medical questions and returns the passages that mention a plant (also by its English or Albanian name), with citations; the generated, cited answer (RAG) is in progress |
 | Evaluation on 50 annotated recipes | 🟡 In progress | 17 recipes annotated with AI assistance (34 plant mentions); 33 being annotated by hand |
 | Handwritten text recognition (HTR) | ❌ Not planned for the prototype | See [Roadmap](#11-roadmap) |
 
@@ -114,7 +115,7 @@ For the first prototype, the end-to-end path is **Scan & Discover → Historical
 | Historical name (as written) | `sauge` |
 | Normalised name | sage |
 | Candidate scientific name | *Salvia officinalis* L. (*inferred*) |
-| Mapping confidence | from the GBIF match: high only for an exact match with confidence ≥ 90 |
+| Mapping confidence | from the GBIF match: high only for an exact species-level match with confidence ≥ 90 |
 | Albanian local name | Sherbela ([Mustafa et al. 2012](https://doi.org/10.1186/1746-4269-8-6)) |
 | Plant part | *empty*: the passage does not say which part |
 | Preparation | "seth hem to gedere in hony and mak a letuarie" |
@@ -343,7 +344,7 @@ Some data cannot be redistributed, so it is **not in this repository**. These co
 |---|---|---|
 | Curious Cures transcriptions (MS Add. 9308) | No, licence not stated | `python -m pipeline.ingest MS-ADD-09308` downloads 183 pages into `data/raw/cudl/` (about 3 minutes, 1 request per second) |
 | Recipes in the database | No, built locally | `python -m pipeline.load_cudl MS-ADD-09308` splits the pages into recipes and loads 100 into `data/ethnolens.db` |
-| Albanian local names | Yes: [`data/processed/albanian_names.csv`](data/processed/albanian_names.csv) (CC BY 2.0) | To rebuild it from the article: `python -m pipeline.albanian_names` |
+| Albanian local names | Yes: [`data/processed/albanian_names.csv`](data/processed/albanian_names.csv) (CC BY 2.0) | `python -m pipeline.load_names` loads them into the database under GBIF accepted names. To rebuild the CSV from the article: `python -m pipeline.albanian_names` |
 | BHL page scans for OCR | No, downloaded on demand | `python -m pipeline.ocr` OCRs 25 pages from FineBooks and reports the CER |
 | Recipe texts for annotation | No | `python -m eval.make_annotation_sets` writes them to `data/raw/annotation/` |
 

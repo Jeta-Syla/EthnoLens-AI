@@ -30,6 +30,7 @@ FIELDS = ["canonical_name", "local_name", "language", "region", "source",
 
 FAMILY_RE = re.compile(r"\(([A-Z][a-z]+(?:aceae|ae))\)")
 VOUCHER_RE = re.compile(r"\s*\d+/DE/?\d+")  # herbarium voucher number, e.g. "65/DE/10"
+MISSING_SPACE_RE = re.compile(r"(?<=[a-z])(?=[A-Z])")  # typesetting slip, e.g. "Phaseolus vulgarisL."
 
 
 def _text(el: ET.Element) -> str:
@@ -57,7 +58,7 @@ def parse_table(xml: str) -> list[dict]:
         cells = tr.findall("td")
         if not cells or not _text(cells[0]):
             continue  # header row or a continuation row of the previous species
-        taxon = VOUCHER_RE.sub("", _text(cells[0]))
+        taxon = MISSING_SPACE_RE.sub(" ", VOUCHER_RE.sub("", _text(cells[0])))
         family = FAMILY_RE.search(taxon)
         italics = " ".join(_text(i) for i in cells[0].iter("italic"))
         for local_name in _cell_lines(cells[1]):

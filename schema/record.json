@@ -106,7 +106,7 @@
     },
     "mapping_confidence": {
       "enum": ["high", "medium", "candidate", null],
-      "description": "GBIF match: EXACT with confidence >= 90 -> high; FUZZY -> medium; otherwise candidate. null when there is no scientific name."
+      "description": "GBIF match (pipeline/taxonomy.py): EXACT species-level match with confidence >= 90 -> high; spelling variant or fuzzy species-level match -> medium; genus only, no match, or a near-miss that lands on a synonym -> candidate. null when there is no scientific name or it has not been mapped yet."
     },
     "review_status": {
       "enum": ["pending", "verified", "rejected"]

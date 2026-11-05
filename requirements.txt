@@ -6,6 +6,7 @@ chromadb
 pytesseract
 pdf2image
 requests
+truststore
 python-dotenv
 streamlit
 folium
