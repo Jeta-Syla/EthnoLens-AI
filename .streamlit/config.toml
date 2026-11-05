@@ -1,0 +1,48 @@
+# Herbarium theme for EthnoLens. Locked to one light appearance.
+[theme]
+base = "light"
+primaryColor = "#1a5c45"
+backgroundColor = "#f3ead7"
+secondaryBackgroundColor = "#e7f0e4"
+textColor = "#1f2a24"
+linkColor = "#8c3a3a"
+borderColor = "#c9b89a"
+codeTextColor = "#1a5c45"
+codeBackgroundColor = "#e7f0e4"
+redColor = "#8c3a3a"
+orangeColor = "#a15c2a"
+yellowColor = "#c4922a"
+greenColor = "#1a5c45"
+blueColor = "#2f5d62"
+grayColor = "#5c564c"
+
+font = "Source Serif 4:https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap"
+headingFont = "Fraunces:https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,650&display=swap"
+baseFontSize = 17
+baseFontWeight = 400
+headingFontWeights = [560, 560, 560, 500, 500, 500]
+baseRadius = "10px"
+buttonRadius = "10px"
+headingFontSizes = ["40px", "28px", "22px", "18px", "16px", "14px"]
+showWidgetBorder = true
+showSidebarBorder = false
+linkUnderline = true
+paddingTop = "1.25rem"
+paddingBottom = "3rem"
+chartCategoricalColors = ["#1a5c45", "#8c3a3a", "#a15c2a", "#2f5d62", "#c4922a", "#5c564c"]
+chartSequentialColors = ["#f3ead7", "#e4d7b8", "#d2c09a", "#b7c9ad", "#8faf96", "#5e8f74", "#1a5c45", "#144a38", "#0e3327", "#0a241c"]
+chartDivergingColors = ["#8c3a3a", "#a85a4a", "#c49a7a", "#e4d7b8", "#f3ead7", "#e7f0e4", "#b7c9ad", "#5e8f74", "#1a5c45", "#0e3327"]
+dataframeBorderColor = "#c9b89a"
+dataframeHeaderBackgroundColor = "#1c3329"
+dataframeHeaderTextColor = "#f3ead7"
+
+[theme.sidebar]
+backgroundColor = "#1c3329"
+secondaryBackgroundColor = "#27483b"
+textColor = "#f3ead7"
+linkColor = "#e7c56a"
+borderColor = "#3d5c4e"
+primaryColor = "#e7c56a"
+codeBackgroundColor = "#27483b"
+codeTextColor = "#f3ead7"
+headingFontWeights = [560, 560, 560, 500, 500, 500]
