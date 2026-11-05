@@ -5,38 +5,44 @@ import requests
 import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from common import api_url, disclaimer, load_records, render_plant, source_caption
+from common import api_url, disclaimer, page_heading, render_passage, render_plant
 
-st.title("Scan and Discover")
+page_heading("Scan and discover", "A page goes in. The plant name comes back marked in its passage.")
 disclaimer()
-st.write("Upload a PDF or image. The API returns records, and each historical name is highlighted in its passage.")
 
-upload = st.file_uploader("Document", type=["pdf", "png", "jpg", "jpeg", "tif", "tiff", "txt"])
-records, source = load_records()
+with st.container(border=True):
+    upload = st.file_uploader("Document", type=["pdf", "png", "jpg", "jpeg", "tif", "tiff", "txt"])
+    send = st.button("Send to API", type="primary", icon=":material/upload:")
+if upload is None or not send:
+    st.caption("Nothing is sent until you choose a file and press Send to API.")
+    st.stop()
 
-if upload is not None and st.button("Send to API"):
-    try:
-        response = requests.post(
-            f"{api_url()}/documents",
-            files={"file": (upload.name, upload.getvalue(), upload.type or "application/octet-stream")},
-            timeout=5,
-        )
-        response.raise_for_status()
-        payload = response.json()
-        returned = payload["records"] if isinstance(payload, dict) else payload
-        if isinstance(returned, list) and returned:
-            st.success(f"{api_url()}/documents returned {len(returned)} records.")
-            for record in returned:
-                render_plant(record)
-                st.divider()
-        else:
-            st.info("The API answered, but it returned no records.")
-    except (requests.RequestException, ValueError, KeyError, TypeError):
-        st.info("POST /documents is not available yet. The highlight below uses an illustrative record.")
-        render_plant(records[0])
-elif records:
-    source_caption(source)
-    st.markdown("**Highlight preview**")
-    labels = {record["id"]: f"{record['id']} · {record['historical_name']}" for record in records}
-    selected = st.selectbox("Record", list(labels), format_func=labels.get)
-    render_plant(next(record for record in records if record["id"] == selected))
+try:
+    response = requests.post(
+        f"{api_url()}/documents",
+        files={"file": (upload.name, upload.getvalue(), upload.type or "application/octet-stream")},
+        timeout=60,
+    )
+    response.raise_for_status()
+    payload = response.json()
+except requests.RequestException:
+    st.info("POST /documents is not available. Start the API, then send the file again.")
+    st.stop()
+except ValueError:
+    st.info("POST /documents answered, but the response was not JSON.")
+    st.stop()
+
+records = payload.get("records") if isinstance(payload, dict) else None
+passages = payload.get("passages") if isinstance(payload, dict) else None
+if isinstance(records, list) and records:
+    st.success(f"{len(records)} records came back from {api_url()}/documents.")
+    for record in records:
+        render_plant(record)
+        st.divider()
+elif isinstance(passages, list) and passages:
+    st.info("The file was stored. Extraction has not returned plant records yet, so there is nothing to highlight.")
+    for passage in passages:
+        st.markdown(f"**{passage.get('folio', 'page')}**")
+        render_passage({"passage": passage.get("text") or "", "span": None})
+else:
+    st.info("The API answered, but it returned no records.")

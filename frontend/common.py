@@ -35,6 +35,8 @@ _REFUSAL_PATTERN = re.compile(
 # One point per documented region. These are region labels, not village coordinates.
 REGION_POINTS = {
     "Albanian Alps, Kosovo": (42.55, 20.10),
+    "Kosovo": (42.55, 20.10),
+    "Albania": (41.15, 20.17),
 }
 
 
@@ -67,7 +69,97 @@ def load_records() -> tuple[list[dict], str]:
     return records, "mock"
 
 
+_SPRIG = """
+<svg width="76" height="76" viewBox="0 0 76 76" fill="none" aria-hidden="true">
+  <circle cx="38" cy="38" r="36" stroke="#e7c56a" stroke-width="1"/>
+  <path d="M38 60c0 0-16-14-9-30 3.4-8 9-11 9-11s5.6 3 9 11c7 16-9 30-9 30z" stroke="#f6f0e4" stroke-width="1.5"/>
+  <path d="M38 55V20" stroke="#e7c56a" stroke-width="1.2"/>
+  <path d="M38 34c-7-2-10-8-10-8M38 42c7-2 10-7 10-7" stroke="#f6f0e4" stroke-width="1.15"/>
+</svg>
+"""
+
+
+def apply_look() -> None:
+    """Herbarium plate, paper, and the gold mark in a passage. Colors live in config.toml."""
+    st.logo(str(ROOT / "mark.svg"), size="large", icon_image=str(ROOT / "mark-ink.svg"))
+    st.html(
+        """
+        <style>
+          .stApp {
+            background-color: #f3ead7;
+            background-image:
+              radial-gradient(900px 420px at 0% -10%, rgba(255, 250, 241, 0.95), transparent 60%),
+              radial-gradient(700px 380px at 100% 0%, rgba(231, 240, 228, 0.85), transparent 55%);
+          }
+          .el-plate {
+            display: flex;
+            gap: 1.15rem;
+            align-items: center;
+            background: linear-gradient(135deg, #163028 0%, #1c3329 55%, #27483b 100%);
+            color: #f6f0e4;
+            padding: 1.35rem 1.5rem;
+            border-radius: 14px;
+            margin: 0 0 1rem;
+            box-shadow: 0 16px 40px rgba(22, 48, 40, 0.16);
+          }
+          .el-plate h1 {
+            font-family: Fraunces, "Source Serif 4", Georgia, serif;
+            font-weight: 560;
+            font-size: 2.35rem;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            margin: 0;
+            color: #f6f0e4;
+          }
+          .el-kicker {
+            margin: 0 0 0.3rem;
+            color: #e7c56a;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+          }
+          .el-line {
+            margin: 0.4rem 0 0;
+            color: #d5e3d4;
+            font-size: 1.02rem;
+          }
+          .el-passage {
+            background: #fffaf1;
+            border-left: 4px solid #e7c56a;
+            border-radius: 0 10px 10px 0;
+            padding: 0.95rem 1.05rem;
+            color: #1f2a24;
+            line-height: 1.7;
+            box-shadow: inset 0 0 0 1px rgba(201, 184, 154, 0.45);
+          }
+          mark {
+            background: #e7c56a;
+            color: #1f2a24;
+            padding: 0 0.15em;
+            border-radius: 2px;
+          }
+        </style>
+        """
+    )
+
+
+def page_heading(title: str, line: str, kicker: str = "EthnoLens AI") -> None:
+    apply_look()
+    st.html(
+        "<header class='el-plate'>"
+        + _SPRIG
+        + "<div><p class='el-kicker'>"
+        + html.escape(kicker)
+        + "</p><h1>"
+        + html.escape(title)
+        + "</h1><p class='el-line'>"
+        + html.escape(line)
+        + "</p></div></header>"
+    )
+
+
 def disclaimer() -> None:
+    apply_look()
     st.warning(DISCLAIMER)
 
 
@@ -80,6 +172,45 @@ def source_caption(source: str) -> None:
 
 def is_medical_question(question: str) -> bool:
     return _REFUSAL_PATTERN.search(question) is not None
+
+
+def region_point(region: str | None):
+    """Return a map point only when the region name documents Kosovo or Albania."""
+    if not region:
+        return None
+    if region in REGION_POINTS:
+        return REGION_POINTS[region]
+    folded = region.casefold()
+    if "kosovo" in folded:
+        return REGION_POINTS["Kosovo"]
+    if "albania" in folded or "shqip" in folded:
+        return REGION_POINTS["Albania"]
+    return None
+
+
+def render_citations(citations, records: list[dict], key_prefix: str) -> None:
+    """Show each citation as a control that opens its passage."""
+    if not citations:
+        return
+    st.markdown("**Citations**")
+    for index, citation in enumerate(citations):
+        if isinstance(citation, str):
+            source, folio, passage, url = citation, "", "", ""
+        else:
+            source = str(citation.get("source") or "source")
+            folio = str(citation.get("folio") or "")
+            passage = str(citation.get("passage") or "")
+            url = str(citation.get("url") or "")
+        label = ", ".join(part for part in (source, folio) if part)
+        if url:
+            st.link_button(label, url)
+            continue
+        open_key = f"open-{key_prefix}-{index}"
+        if st.button(label, key=f"{key_prefix}-{index}"):
+            st.session_state[open_key] = not st.session_state.get(open_key, False)
+        if st.session_state.get(open_key):
+            text = passage or _passage_for(records, source, folio)
+            st.write(text or "This citation has no passage in the loaded records.")
 
 
 def highlight_html(passage: str, span) -> str:
@@ -99,46 +230,50 @@ def highlight_html(passage: str, span) -> str:
 def render_passage(record: dict) -> None:
     passage = record.get("passage") or ""
     span = record.get("span")
-    st.markdown(highlight_html(passage, span), unsafe_allow_html=True)
+    st.html(f"<div class='el-passage'>{highlight_html(passage, span)}</div>")
     if _valid_span(passage, span):
-        st.caption(f"Highlighted span {span[0]}:{span[1]} is the historical name as written.")
+        st.caption(f"The gold mark, characters {span[0]}–{span[1]}, is the historical name as written.")
     else:
-        st.caption("The historical name is not in this passage, so nothing is highlighted. The plant evidence is inferred.")
+        st.caption("The historical name is not in this passage, so nothing is marked. The plant evidence is inferred.")
 
 
 def render_plant(record: dict) -> None:
     """Plant page: mentions, original passage, confidence, and stated/inferred."""
-    st.subheader(record.get("historical_name") or record.get("id"))
+    name = record.get("historical_name") or record.get("id")
     scientific = record.get("candidate_scientific_name") or "No candidate yet"
-    st.markdown(f"**Candidate scientific name:** {scientific}")
-    st.caption("A candidate is not a confirmed identification.")
-
-    left, right = st.columns(2)
-    left.metric("Extraction confidence", _confidence(record.get("extraction_confidence")))
-    right.metric("Mapping confidence", record.get("mapping_confidence") or "none")
-
     evidence = record.get("evidence") or {}
-    st.write(
-        f"Plant name: **{evidence.get('plant', 'unknown')}**. "
-        f"Scientific name: **{evidence.get('scientific_name', 'unknown')}**."
-    )
-    rows = [
-        ("Normalised name", record.get("normalised_name")),
-        ("Local name", record.get("local_name")),
-        ("Plant part", record.get("plant_part")),
-        ("Preparation", record.get("preparation")),
-        ("Described use", record.get("described_use")),
-        ("Other ingredients", ", ".join(record.get("other_ingredients") or []) or None),
-        ("Source", record.get("source")),
-        ("Folio", record.get("folio")),
-        ("Language", record.get("language")),
-        ("Region", record.get("region")),
-        ("Period", record.get("period")),
-        ("Review status", record.get("review_status")),
-    ]
-    for label, value in rows:
-        st.write(f"**{label}:** {value if value else '—'}")
-
+    with st.container(border=True):
+        st.subheader(name)
+        st.markdown(f"*{scientific}*")
+        st.caption("A candidate scientific name is not a confirmed identification.")
+        local, extraction, mapping = st.columns(3)
+        local.metric("Local name", record.get("local_name") or "—")
+        extraction.metric("Extraction", _confidence(record.get("extraction_confidence")))
+        mapping.metric("Mapping", record.get("mapping_confidence") or "none")
+        st.write(
+            f"Plant name in the text: **{evidence.get('plant', 'unknown')}**. "
+            f"Scientific name: **{evidence.get('scientific_name', 'unknown')}**."
+        )
+    with st.container(border=True):
+        rows = [
+            ("Normalised name", record.get("normalised_name")),
+            ("Plant part", record.get("plant_part")),
+            ("Preparation", record.get("preparation")),
+            ("Described use", record.get("described_use")),
+            ("Other ingredients", ", ".join(record.get("other_ingredients") or []) or None),
+            ("Source", record.get("source")),
+            ("Folio", record.get("folio")),
+            ("Language", record.get("language")),
+            ("Region", record.get("region")),
+            ("Period", record.get("period")),
+            ("Review", record.get("review_status")),
+        ]
+        left_rows = rows[:6]
+        right_rows = rows[6:]
+        left, right = st.columns(2)
+        for column, group in ((left, left_rows), (right, right_rows)):
+            for label, value in group:
+                column.markdown(f"**{label}**  \n{value if value else '—'}")
     st.markdown("**Original passage**")
     render_passage(record)
 
@@ -164,6 +299,15 @@ def filter_records(records: list[dict], query: str, part: str, preparation: str,
 def options(records: list[dict], key: str) -> list[str]:
     values = sorted({record.get(key) for record in records if record.get(key)})
     return ["All", *values]
+
+
+def _passage_for(records: list[dict], source: str, folio: str) -> str:
+    for record in records:
+        same_source = (record.get("source") or "") == source
+        same_folio = not folio or (record.get("folio") or "") == folio
+        if same_source and same_folio and record.get("passage"):
+            return record["passage"]
+    return ""
 
 
 def _search_text(record: dict) -> str:
