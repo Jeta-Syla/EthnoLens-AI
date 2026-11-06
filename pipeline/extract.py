@@ -132,13 +132,16 @@ def extract_passage(passage: Passage) -> list[Record]:
     return records
 
 
-def extract_all(limit: int | None = None) -> int:
+def extract_all(limit: int | None = None, skip_existing: bool = False) -> int:
     """Run extraction for every passage currently in the local database."""
     db.init_db()
     with db.connect() as conn:
         passages = [Passage(**dict(row)) for row in conn.execute(
             "SELECT id, document_id, folio, seq, text, method FROM passages ORDER BY id"
         ).fetchall()]
+        if skip_existing:
+            existing = {row[0] for row in conn.execute("SELECT DISTINCT passage_id FROM records")}
+            passages = [passage for passage in passages if passage.id not in existing]
     if limit is not None:
         passages = passages[:limit]
     failed = []
@@ -158,5 +161,7 @@ def extract_all(limit: int | None = None) -> int:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Extract plant records from stored passages.")
     parser.add_argument("--limit", type=int, help="Only process the first N passages")
+    parser.add_argument("--skip-existing", action="store_true",
+                        help="Skip passages that already have at least one stored record")
     args = parser.parse_args()
-    extract_all(args.limit)
+    extract_all(args.limit, args.skip_existing)
