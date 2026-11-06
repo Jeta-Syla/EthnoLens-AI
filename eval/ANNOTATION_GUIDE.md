@@ -1,33 +1,33 @@
-# Udhëzuesi i anotimit (50 receta)
+# Annotation guide (50 recipes)
 
-## Qëllimi
+## Purpose
 
-Krijoni një standard reference njerëzor për të matur sa saktë sistemi gjen bimët dhe hollësitë e recetës. Anotoni vetëm atë që lexohet në pasazhin burimor. Mos përdorni njohuri moderne bimore për të plotësuar boshllëqe.
+Create a human reference standard for measuring how accurately the system finds plants and recipe details. Annotate only what can be read in the source passage. Do not fill gaps with modern botanical knowledge.
 
-## Si të plotësohet CSV-ja
+## How to fill in the CSV
 
-Përdorni `eval/annotations/<emri>.csv`. Çdo rresht përfaqëson një pasazh. Plotësoni kolonat `historical_name`, `plant_part`, `preparation`, `described_use` dhe `notes`.
+Use `eval/annotations/<name>.csv`. Each row represents one passage. Fill in `historical_name`, `plant_part`, `preparation`, `described_use`, and `notes`.
 
-- `historical_name`: emri i bimës saktësisht siç shfaqet në dorëshkrim, me drejtshkrimin historik. Një bimë për rresht. Nëse receta përmend dy bimë, kopjoni rreshtin dhe përdorni të njëjtin `passage_id` e `folio` për secilën.
-- `plant_part`: pjesa e përmendur qartë (p.sh. leaf, root, seed). Shkruajeni anglisht, me shkronja të vogla dhe njëjës, që të përputhet me skemën. Lëreni bosh nëse nuk thuhet.
-- `preparation`: fjalët e pasazhit që tregojnë përgatitjen, siç janë shkruar (p.sh. “sethe hem togidre”). Lëreni bosh nëse nuk përshkruhet.
-- `described_use`: fjalët e pasazhit që tregojnë përdorimin historik. Mos e ktheni në këshillë ose pretendim mjekësor. Lëreni bosh nëse mungon.
-- `notes`: paqartësi leximi, shtrirja e fjalëve të pasazhit, ose arsyeja kur një rresht mbetet i pazgjidhur. Mos vendosni identifikim modern këtu si fakt.
+- `historical_name`: the plant name exactly as it appears in the manuscript, preserving historical spelling. Use one plant per row. If a recipe mentions two plants, copy the row and use the same `passage_id` and `folio` for each.
+- `plant_part`: the part explicitly mentioned (e.g. leaf, root, seed). Use lowercase singular English to match the schema. Leave it blank if the passage does not say.
+- `preparation`: the words in the passage that describe preparation, copied as written (e.g. “sethe hem togidre”). Leave it blank if no preparation is described.
+- `described_use`: the words in the passage that describe the historical use. Do not turn them into advice or a medical claim. Leave it blank if none is given.
+- `notes`: reading ambiguities, the span of relevant passage wording, or why an entry remains unresolved. Do not state a modern identification as fact.
 
-## Rregullat e vendimmarrjes
+## Decision rules
 
-1. Lexoni gjithë tekstin nën folion përpara se të anotoni.
-2. Përfshini vetëm bimët e identifikueshme nga teksti. Nëse teksti thotë vetëm “herbe” ose emri mungon/është i palexueshëm, mos shpikni emër bime; shpjegojeni te `notes`.
-3. Ruani format e ndryshme historike siç janë; mos i bashkoni emrat e ngjashëm pa dëshmi të qartë.
-4. Mos anotoni përbërësit që nuk janë bimë. Mos nxirrni pjesë, mënyrë përgatitjeje apo përdorim nga njohuri të përgjithshme.
-5. Nëse një recetë ka disa bimë, krijoni një rresht për secilën bimë dhe përsëritni identifikuesit e pasazhit.
-6. Për tekst të pasigurt, anotoni vetëm pjesën që mund ta mbështesni dhe shënoni pasigurinë te `notes`.
+1. Read the entire text under the folio before annotating.
+2. Include only plants that can be identified from the text. If it says only “herbe” or the name is missing or unreadable, do not invent a plant name; explain this in `notes`.
+3. Preserve different historical spellings as written. Do not merge similar names without clear evidence.
+4. Do not annotate non-plant ingredients. Do not infer a plant part, preparation, or use from general knowledge.
+5. If a recipe contains several plants, create one row for each plant and repeat the passage identifiers.
+6. For uncertain text, annotate only what you can support and note the uncertainty in `notes`.
 
-## Kontrolli para dorëzimit
+## Before submitting
 
-- Numri i rreshtave mund të jetë më i madh se numri i recetave kur pasazhi ka disa bimë.
-- Mos ndryshoni `passage_id` ose `folio` të dhënë.
-- Kontrolloni që fushat bosh janë lënë bosh, pa `N/A`, hamendje ose placeholder.
-- Ruani CSV-në në UTF-8 që shkronjat historike të mos humbin.
+- The number of rows may exceed the number of recipes when a passage contains several plants.
+- Do not change the provided `passage_id` or `folio`.
+- Leave unknown fields blank; do not enter `N/A`, guesses, or placeholders.
+- Save the CSV as UTF-8 so historical characters are preserved.
 
-Anotuesit punojnë në mënyrë të pavarur. Mos shikoni rezultatet e nxjerrjes së modelit para se të përfundoni anotimin; kështu shmanget ndikimi në standardin e referencës.
+Annotators should work independently. Do not look at the model's extraction results until you have finished annotating, to avoid biasing the reference standard.
