@@ -150,6 +150,42 @@ def upsert_passages(conn: sqlite3.Connection, passages: list[dict]) -> None:
     )
 
 
+def upsert_records(conn: sqlite3.Connection, records: list[dict]) -> None:
+    """Store validated extraction results while preserving passage traceability."""
+    conn.executemany(
+        """INSERT INTO records (
+               id, passage_id, historical_name, normalised_name,
+               candidate_scientific_name, canonical_name, plant_part,
+               preparation, described_use, other_ingredients, span_start,
+               span_end, evidence, extraction_confidence, mapping_confidence,
+               review_status
+           ) VALUES (
+               :id, :passage_id, :historical_name, :normalised_name,
+               :candidate_scientific_name, :canonical_name, :plant_part,
+               :preparation, :described_use, :other_ingredients, :span_start,
+               :span_end, :evidence, :extraction_confidence,
+               :mapping_confidence, :review_status
+           )
+           ON CONFLICT(id) DO UPDATE SET
+               passage_id=excluded.passage_id,
+               historical_name=excluded.historical_name,
+               normalised_name=excluded.normalised_name,
+               candidate_scientific_name=excluded.candidate_scientific_name,
+               canonical_name=excluded.canonical_name,
+               plant_part=excluded.plant_part,
+               preparation=excluded.preparation,
+               described_use=excluded.described_use,
+               other_ingredients=excluded.other_ingredients,
+               span_start=excluded.span_start,
+               span_end=excluded.span_end,
+               evidence=excluded.evidence,
+               extraction_confidence=excluded.extraction_confidence,
+               mapping_confidence=excluded.mapping_confidence,
+               review_status=excluded.review_status""",
+        records,
+    )
+
+
 if __name__ == "__main__":
     init_db()
     print(f"Database ready: {DB_PATH}")
