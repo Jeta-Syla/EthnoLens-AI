@@ -60,15 +60,16 @@ def api_url() -> str:
 
 def load_records() -> tuple[list[dict], str]:
     """Return (records, source) where source is 'api' or 'unavailable'."""
-    try:
-        response = requests.get(f"{api_url()}/records", timeout=1.5)
-        response.raise_for_status()
-        payload = response.json()
-        records = payload["records"] if isinstance(payload, dict) else payload
-        if isinstance(records, list):
-            return records, "api"
-    except (requests.RequestException, ValueError, KeyError, TypeError):
-        pass
+    with st.spinner("Loading the archive…"):
+        try:
+            response = requests.get(f"{api_url()}/records", timeout=1.5)
+            response.raise_for_status()
+            payload = response.json()
+            records = payload["records"] if isinstance(payload, dict) else payload
+            if isinstance(records, list):
+                return records, "api"
+        except (requests.RequestException, ValueError, KeyError, TypeError):
+            pass
     return [], "unavailable"
 
 
@@ -163,7 +164,7 @@ def page_heading(title: str, line: str, kicker: str = "EthnoLens AI") -> None:
 
 def disclaimer() -> None:
     apply_look()
-    st.warning(DISCLAIMER)
+    st.warning(DISCLAIMER, icon=":material/health_and_safety:", title="Not medical advice")
 
 
 def source_caption(source: str) -> None:

@@ -7,7 +7,7 @@ Run from the repository root:
 
 import streamlit as st
 
-from common import DISCLAIMER, page_heading
+from common import disclaimer, page_heading
 
 st.set_page_config(page_title="EthnoLens AI", page_icon=":material/local_florist:", layout="wide")
 page_heading(
@@ -15,7 +15,7 @@ page_heading(
     "Historical plant knowledge, kept beside the passage it came from.",
     kicker="A herbarium for the archive",
 )
-st.warning(DISCLAIMER)
+disclaimer()
 
 st.subheader("Choose a way through the archive")
 scan, archive, mapped, ask = st.columns(4, vertical_alignment="top")
