@@ -23,7 +23,14 @@ try:
         files={"file": (upload.name, upload.getvalue(), upload.type or "application/octet-stream")},
         timeout=60,
     )
-    response.raise_for_status()
+    if response.status_code >= 400:
+        # The API explains what went wrong (no text found, Poppler or Tesseract missing, unsupported type).
+        try:
+            detail = response.json().get("detail")
+        except ValueError:
+            detail = None
+        st.error(f"The file was not stored: {detail or f'HTTP {response.status_code}'}")
+        st.stop()
     payload = response.json()
 except requests.RequestException:
     st.info("POST /documents is not available. Start the API, then send the file again.")
@@ -34,6 +41,8 @@ except ValueError:
 
 records = payload.get("records") if isinstance(payload, dict) else None
 passages = payload.get("passages") if isinstance(payload, dict) else None
+for note in (payload.get("notes") or []) if isinstance(payload, dict) else []:
+    st.warning(note)  # e.g. extraction skipped because LLM_API_KEY is not set
 if isinstance(records, list) and records:
     st.success(f"{len(records)} records came back from {api_url()}/documents.")
     for record in records:

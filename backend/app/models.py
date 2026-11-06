@@ -86,6 +86,7 @@ class UploadResult(BaseModel):
     document: Document
     passages: list[Passage]
     records: list[Record]
+    notes: list[str] = []  # e.g. why extraction was skipped
 
 
 class LocalName(BaseModel):

@@ -3,3 +3,5 @@ data/raw/
 data/*.db
 __pycache__/
 .venv/
+data/*.db.bak
+data/chroma/

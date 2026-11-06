@@ -39,7 +39,9 @@ else:
         payload = response.json()
         text = payload.get("answer") if isinstance(payload, dict) else None
         found = payload.get("citations") if isinstance(payload, dict) else None
-        if text and found:
+        if payload.get("mode") == "refused":  # the server's rule is the authority, not the local pattern
+            answer = REFUSAL
+        elif text and found:
             answer = text
             citations = found
     except (requests.RequestException, ValueError, AttributeError):

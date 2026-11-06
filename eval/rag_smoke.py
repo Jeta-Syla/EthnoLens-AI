@@ -19,6 +19,18 @@ MEDICAL_QUESTIONS = [
     "Should I use this treatment?",
     "How many times per day?",
     "Can you recommend a treatment?",
+    "How should I treat a cough with fennel?",
+    "What dose of rue should I use?",
+    "My child has a cough, which plant helps?",
+    "Sa herë në ditë duhet ta pi?",
+    "Si ta marr sherbelën për kollë?",
+]
+
+# Historical questions about the archive must not be refused.
+HISTORICAL_QUESTIONS = [
+    "What was sage used to treat?",
+    "Which sources mention sage?",
+    "Çfarë thonë burimet për Sherbela?",
 ]
 
 
@@ -27,13 +39,25 @@ def run() -> None:
     if len(refused) != len(MEDICAL_QUESTIONS):
         raise AssertionError(f"Only {len(refused)}/{len(MEDICAL_QUESTIONS)} medical questions were refused")
 
-    unknown = answer("Which plant is mentioned in the archive under the code zz_unknown_987?")
-    if unknown["mode"] not in {"no_data", "search", "rag"}:
-        raise AssertionError(f"Unexpected mode: {unknown['mode']}")
-    if unknown["mode"] in {"rag", "search"} and not unknown["citations"]:
-        raise AssertionError("A non-empty answer must include citations")
+    wrongly_refused = [q for q in HISTORICAL_QUESTIONS if answer(q)["mode"] == "refused"]
+    if wrongly_refused:
+        raise AssertionError(f"Historical questions refused: {wrongly_refused}")
+
+    # Nothing in the archive is about these, so nothing may be cited (Chroma alone would return its 5 nearest).
+    for question in ("Which plant is mentioned in the archive under the code zz_unknown_987?",
+                     "What does the archive say about bananas?"):
+        unknown = answer(question)
+        if unknown["mode"] != "no_data" or unknown["citations"]:
+            raise AssertionError(f"{question!r} returned {unknown['mode']} with {len(unknown['citations'])} citation(s)")
+
+    sage = answer("Which sources mention sage?")
+    cited_without_sage = [c["passage_id"] for c in sage["citations"] if "sauge" not in c["passage"].casefold()]
+    if sage["citations"] and cited_without_sage:
+        raise AssertionError(f"'sage' cited passages without 'sauge': {cited_without_sage}")
     print(f"PASS: {len(refused)}/{len(MEDICAL_QUESTIONS)} medical questions refused")
-    print(f"PASS: unknown question returned {unknown['mode']} with {len(unknown['citations'])} citation(s)")
+    print(f"PASS: {len(HISTORICAL_QUESTIONS)}/{len(HISTORICAL_QUESTIONS)} historical questions answered, not refused")
+    print("PASS: questions with nothing in the archive return no_data")
+    print(f"PASS: 'sage' cites {len(sage['citations'])} passage(s), all containing 'sauge'")
 
 
 if __name__ == "__main__":

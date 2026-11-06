@@ -120,10 +120,18 @@ def extract_all(limit: int | None = None) -> int:
         ).fetchall()]
     if limit is not None:
         passages = passages[:limit]
+    failed = []
     for number, passage in enumerate(passages, start=1):
-        extract_passage(passage)
+        try:
+            extract_passage(passage)
+        except Exception as error:  # one bad response or network error must not stop the whole run
+            failed.append(passage.id)
+            print(f"{number}/{len(passages)} FAILED: {passage.id}: {error}")
+            continue
         print(f"{number}/{len(passages)} extracted: {passage.id}")
-    return len(passages)
+    if failed:
+        print(f"{len(failed)} passage(s) failed: {', '.join(failed)}")
+    return len(passages) - len(failed)
 
 
 if __name__ == "__main__":

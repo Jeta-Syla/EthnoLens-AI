@@ -16,7 +16,24 @@ load_dotenv(db.REPO_ROOT / ".env")
 
 CHROMA_DIR = Path(os.getenv("ETHNOLENS_CHROMA", db.REPO_ROOT / "data" / "chroma"))
 COLLECTION = "ethnolens_passages"
-MEDICAL_RE = re.compile(r"doz|sa herë|trajtim|a duhet ta marr|dosage|dose|treatment|should i take|how many times", re.I)
+# Personal medical advice: asking what *I* should do, how much, or how to treat someone. Historical questions
+# ("What was sage used to treat?") are answered from the archive.
+MEDICAL_RE = re.compile(
+    r"\b(should|can|could|shall|may|do) i\b|\bis it safe|\brecommend|\bmy\b|\bi have\b"
+    r"|\bdos(e|es|age|ing)\b|doz|how (much|many|often|long)|times (a|per) day"
+    r"|\b(treat(ment)?|cure|heal)\s+(my|me|a|an|it|this|someone)\b|\btreatment\b"
+    r"|sa herë|sa shumë|sa gjatë|trajt|kuro|shëro|mjeko|a duhet|si ta (marr|pi|përdor)|\bkam\b",
+    re.I,
+)
+# Question words that say nothing about the plant; a passage must share at least one *other* word to be cited.
+STOPWORDS = set("""
+the and for which what who where when how does did are was were about say says said tell mention mentions
+mentioned source sources archive archives text texts passage passages plant plants used use uses with from this
+that these those any there their they them can could would should give show list find you your our its into
+under code recipe recipes manuscript manuscripts name names called please know
+çfarë cfare thonë thone thotë thote burimet burimi burim për per cilat cila cili bimët bimet bima bimë bime
+arkiva arkivi arkivën arkiven rreth mbi dhe nga janë jane është eshte përdoret perdoret përdorur perdorur
+""".split())
 REFUSAL = "EthnoLens does not give medical advice, dosages or treatments. Uses in the archive are historical descriptions, not instructions."
 NO_DATA = "The archive has no passage about this."
 
@@ -63,25 +80,56 @@ def index_passages() -> int:
     return len(rows)
 
 
+def _expand(question: str) -> str:
+    """Add the historical spellings of plants the question names in English, Albanian or Latin.
+
+    The passages are Middle English, so "sage" or "Sherbela" must also search for "sauge".
+    """
+    words = set(re.findall(r"[^\W\d_]{4,}", question.casefold()))
+    names = set()
+    with db.connect() as conn:
+        for word in words:
+            like = f"%{word}%"
+            names.update(row[0] for row in conn.execute(
+                "SELECT DISTINCT historical_name FROM records_full "
+                "WHERE normalised_name LIKE ? OR local_name LIKE ? OR candidate_scientific_name LIKE ?",
+                (like, like, like)))
+    return " ".join([question, *sorted(names)])
+
+
+def _words(text: str) -> set[str]:
+    return set(re.findall(r"[^\W\d_]{3,}", text.casefold()))
+
+
 def _retrieve(question: str, limit: int = 5) -> list[dict[str, str]]:
-    if chromadb is None:
-        words = set(re.findall(r"[^\W\d_]{3,}", question.casefold()))
-        with db.connect() as conn:
-            rows = conn.execute(
-                """SELECT p.id AS passage_id, p.text AS passage, p.folio, d.source
-                   FROM passages p JOIN documents d ON d.id = p.document_id"""
-            ).fetchall()
-        ranked = sorted(rows, key=lambda row: -sum(word in row["passage"].casefold() for word in words))
-        return [dict(row) for row in ranked[:limit] if any(word in row["passage"].casefold() for word in words)]
-    index_passages()
-    client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-    collection = client.get_or_create_collection(COLLECTION, metadata={"hnsw:space": "cosine"})
-    if collection.count() == 0:
+    """Passages that contain at least one content word of the (expanded) question, most shared words first.
+
+    Chroma always returns its nearest passages, even when none is about the question, and its HNSW search is
+    approximate (it can skip a passage). So the candidates come from SQLite, a passage is cited only if it shares
+    a word with the question (none -> no_data), and the Chroma ranking only breaks ties.
+    """
+    terms = _words(_expand(question)) - STOPWORDS
+    if not terms:
         return []
-    result = collection.query(query_embeddings=[_embedding(question)], n_results=min(limit, collection.count()))
-    documents = result.get("documents", [[]])[0]
-    metadatas = result.get("metadatas", [[]])[0]
-    return [{"passage": text, **metadata} for text, metadata in zip(documents, metadatas)]
+    with db.connect() as conn:
+        candidates = [dict(row) for row in conn.execute(
+            """SELECT p.id AS passage_id, p.text AS passage, p.folio, d.source
+               FROM passages p JOIN documents d ON d.id = p.document_id ORDER BY p.id"""
+        )]
+    scored = [(len(terms & _words(item["passage"])), item) for item in candidates]
+    scored = [pair for pair in scored if pair[0] > 0]
+    if not scored:
+        return []
+    rank: dict[str, int] = {}
+    if chromadb is not None:
+        index_passages()
+        client = chromadb.PersistentClient(path=str(CHROMA_DIR))
+        collection = client.get_or_create_collection(COLLECTION, metadata={"hnsw:space": "cosine"})
+        result = collection.query(query_embeddings=[_embedding(" ".join(sorted(terms)))],
+                                  n_results=min(collection.count(), 100))
+        rank = {meta["passage_id"]: i for i, meta in enumerate(result["metadatas"][0])}
+    scored.sort(key=lambda pair: (-pair[0], rank.get(pair[1]["passage_id"], len(rank))))
+    return [item for _, item in scored[:limit]]
 
 
 def _generated_answer(question: str, passages: list[dict[str, str]]) -> str | None:

@@ -26,8 +26,13 @@ REFUSAL = (
 )
 NO_DATA = "Nuk ka të dhëna në arkivë."
 
+# Same rule as pipeline/rag.py MEDICAL_RE, so a medical question is refused even when the API is down.
+# When the API answers, its "refused" mode decides.
 _REFUSAL_PATTERN = re.compile(
-    r"doz|sa herë|trajtim|a duhet ta marr|dosage|treatment|should i take|how many times",
+    r"\b(should|can|could|shall|may|do) i\b|\bis it safe|\brecommend|\bmy\b|\bi have\b"
+    r"|\bdos(e|es|age|ing)\b|doz|how (much|many|often|long)|times (a|per) day"
+    r"|\b(treat(ment)?|cure|heal)\s+(my|me|a|an|it|this|someone)\b|\btreatment\b"
+    r"|sa herë|sa shumë|sa gjatë|trajt|kuro|shëro|mjeko|a duhet|si ta (marr|pi|përdor)|\bkam\b",
     re.IGNORECASE,
 )
 

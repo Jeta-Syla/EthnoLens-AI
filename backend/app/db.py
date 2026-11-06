@@ -14,6 +14,8 @@ Run `python -m backend.app.db` from the repo root to create the database.
 
 import os
 import sqlite3
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -112,11 +114,23 @@ JOIN documents d ON d.id = p.document_id;
 """
 
 
-def connect(path: Path | str = DB_PATH) -> sqlite3.Connection:
+@contextmanager
+def connect(path: Path | str = DB_PATH) -> Iterator[sqlite3.Connection]:
+    """`with connect() as conn:` commits on success, rolls back on error, and always closes.
+
+    (sqlite3's own `with` only commits; an open connection keeps the file locked on Windows.)
+    """
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+    try:
+        yield conn
+        conn.commit()
+    except BaseException:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 
 def init_db(path: Path | str = DB_PATH) -> None:

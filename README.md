@@ -7,7 +7,7 @@
 
 ## Project Status
 
-*Updated 4 November 2026. This prototype was built during EthnoHack 2026; the table says honestly what works and what does not yet.*
+*Updated 6 November 2026. This prototype was built during EthnoHack 2026; the table says honestly what works and what does not yet.*
 
 | Part | Status | Details |
 |---|---|---|
@@ -16,11 +16,12 @@
 | API | ✅ Works | `GET /health`, `GET /records` (search and filters), `POST /documents` (text and images; PDFs need Poppler), `GET /plants/{scientific name}`, `GET /map`, `POST /ask` |
 | OCR | ✅ Works | Tesseract on 25 BHL page scans: mean character error rate **2.7%** (about 1.2% on prose pages, 38% on a two-column contents page) |
 | Albanian local names | ✅ Works | 100 names for 98 species from Mustafa et al. (2012), joined to records through GBIF accepted names (7 outdated names in the article resolved, e.g. *Matricaria recutita* → *M. chamomilla*) |
-| Streamlit frontend | 🟡 In progress | Four pages (Scan & Discover, Archive, EthnoMap, Ask); falls back to illustrative mock records when the API has no data |
-| LLM extraction | 🟡 In progress | Prompt and validation against the record contract |
+| Streamlit frontend | ✅ Works | Four pages (Scan & Discover, Archive, EthnoMap, Ask) on the live API, no mock data; the full flow (upload → records → archive → map → Ask) tested end to end 3 times with text, image and PDF uploads; the API's reason is shown when an upload fails or extraction is skipped |
+| LLM extraction | ✅ Implemented | OpenAI `gpt-4o-mini` in JSON mode; every record is validated against the contract, with one retry on an invalid response; needs an API key |
+| One-command rebuild | ✅ Works | `python -m pipeline.rebuild` builds the database from zero and keeps extracted records |
 | GBIF mapping | ✅ Works | `pipeline/taxonomy.py`: high only for an exact species-level match; spelling variants are medium; genus-only, no match, or a near-miss that lands on a synonym stay *candidate* |
-| Ask EthnoLens (RAG) | 🟡 In progress | `POST /ask` already refuses medical questions and returns the passages that mention a plant (also by its English or Albanian name), with citations; the generated, cited answer (RAG) is in progress |
-| Evaluation on 50 annotated recipes | 🟡 In progress | 17 recipes annotated with AI assistance (34 plant mentions); 33 being annotated by hand |
+| Ask EthnoLens (RAG) | ✅ Works | Cites a passage only if it contains a word of the question or the plant's historical spelling (found from its English or Albanian name); otherwise "no data". Chroma orders the matches. Personal medical questions refused (15/15 in `eval.rag_smoke`, English and Albanian); without an API key it returns the cited passages |
+| Evaluation on 50 annotated recipes | 🟡 In progress | 33 of 50 annotated (16 by hand, 17 with AI assistance), 17 still to annotate; `eval/metrics.py` ready and skips recipes not annotated yet; results after the full extraction run |
 | Handwritten text recognition (HTR) | ❌ Not planned for the prototype | See [Roadmap](#11-roadmap) |
 
 ---
@@ -294,7 +295,7 @@ EthnoLens AI is more than a digitisation tool. It turns historical plant knowled
 | Map | folium (Leaflet) + streamlit-folium |
 | OCR | Tesseract via pytesseract + pdf2image; HTR planned |
 | Extraction | LLM in JSON mode, validated against [`schema/record.json`](schema/record.json) |
-| LLM | *To be decided* |
+| LLM | OpenAI `gpt-4o-mini` (JSON mode, temperature 0) |
 | Database | SQLite ([`backend/app/db.py`](backend/app/db.py)) |
 | Vector search (Ask EthnoLens) | Chroma |
 | Taxonomy | GBIF species match API |
@@ -306,7 +307,8 @@ EthnoLens AI is more than a digitisation tool. It turns historical plant knowled
 ```text
 EthnoLens-AI/
 ├── backend/app/        # FastAPI app: main.py, models.py, db.py
-├── pipeline/           # ingest.py, ocr.py, extract.py, taxonomy.py, rag.py
+├── pipeline/           # rebuild.py (one command), ingest.py, load_cudl.py, load_names.py,
+│                       # ocr.py, extract.py, taxonomy.py, rag.py
 ├── frontend/           # Streamlit app: Scan & Discover, Archive, EthnoMap, Ask
 ├── schema/record.json  # The record contract shared by pipeline, API and frontend
 ├── data/raw/           # Downloaded sources (not in Git)
@@ -336,23 +338,45 @@ pip install -r requirements.txt
 cp .env.example .env               # Windows: copy .env.example .env
 ```
 
-### 3. Get the data
+For LLM extraction and generated answers, put an OpenAI API key in `.env` (`LLM_API_KEY=...`). Without it, everything else works: uploads store the text, and Ask EthnoLens returns the cited passages instead of a generated answer.
 
-Some data cannot be redistributed, so it is **not in this repository**. These commands download it from the original sources (run from the repo root):
+### 3. Build the database (one command)
+
+Some data cannot be redistributed, so it is **not in this repository**. One command downloads it from the original sources and builds `data/ethnolens.db` from zero (run from the repo root):
+
+```bash
+python -m pipeline.rebuild             # sources, recipes, Albanian names, GBIF mapping, Ask index
+python -m pipeline.rebuild --extract   # also runs the LLM on recipes that have no records yet
+```
+
+A rebuild never throws extracted records away: it exports them to `data/raw/records_export.jsonl` first and restores them afterwards, and keeps the old database as `data/ethnolens.db.bak`. To share extractions without paying for them twice, copy a teammate's `records_export.jsonl` into your `data/raw/` and run the rebuild.
+
+What the rebuild does, step by step:
 
 | Data | In the repo? | How to get it |
 |---|---|---|
 | Curious Cures transcriptions (MS Add. 9308) | No, licence not stated | `python -m pipeline.ingest MS-ADD-09308` downloads 183 pages into `data/raw/cudl/` (about 3 minutes, 1 request per second) |
 | Recipes in the database | No, built locally | `python -m pipeline.load_cudl MS-ADD-09308` splits the pages into recipes and loads 100 into `data/ethnolens.db` |
 | Albanian local names | Yes: [`data/processed/albanian_names.csv`](data/processed/albanian_names.csv) (CC BY 2.0) | `python -m pipeline.load_names` loads them into the database under GBIF accepted names. To rebuild the CSV from the article: `python -m pipeline.albanian_names` |
-| BHL page scans for OCR | No, downloaded on demand | `python -m pipeline.ocr` OCRs 25 pages from FineBooks and reports the CER |
-| Recipe texts for annotation | No | `python -m eval.make_annotation_sets` writes them to `data/raw/annotation/` |
+| Extracted records | No, they quote the transcriptions | `python -m pipeline.extract` (needs `LLM_API_KEY`), then `python -m pipeline.taxonomy` maps the scientific names with GBIF |
+| Ask EthnoLens index | No, built locally | `pipeline.rag.index_passages()` indexes the passages in Chroma (`data/chroma/`) |
+| BHL page scans for OCR | No, downloaded on demand | `python -m pipeline.ocr` OCRs 25 pages from FineBooks and reports the CER (not part of the rebuild) |
+| Recipe texts for annotation | No | `python -m eval.make_annotation_sets` writes them to `data/raw/annotation/` (not part of the rebuild) |
 
 ### 4. Run
 
 ```bash
 uvicorn backend.app.main:app --reload    # API, docs at http://localhost:8000/docs
 streamlit run frontend/Home.py           # frontend, in a second terminal
+```
+
+### 5. Evaluate
+
+```bash
+python -m eval.metrics                   # precision, recall, F1 on the annotated recipes
+python -m eval.metrics --human-only      # only the recipes annotated by hand (no [AI-assisted] note)
+python -m eval.rag_smoke                 # medical questions refused, no-data questions cite nothing (no API key needed)
+python -m pipeline.ocr                   # OCR character error rate on 25 BHL pages
 ```
 
 ### Git workflow

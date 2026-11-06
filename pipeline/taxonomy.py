@@ -25,11 +25,19 @@ import json
 from functools import lru_cache
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from backend.app import db
 
 MATCH_URL = "https://api.gbif.org/v2/species/match"
 HEADERS = {"User-Agent": "EthnoLens-AI/0.1 (student research prototype)"}
+
+# GBIF occasionally drops a connection; retry a few times with backoff before giving up.
+_session = requests.Session()
+_session.headers.update(HEADERS)
+_session.mount("https://", HTTPAdapter(max_retries=Retry(
+    total=4, backoff_factor=1, status_forcelist=(429, 500, 502, 503, 504), allowed_methods=("GET",))))
 SPECIES_RANKS = {"SPECIES", "SUBSPECIES", "VARIETY", "FORM"}
 HIGH_CONFIDENCE = 90
 
@@ -37,8 +45,7 @@ HIGH_CONFIDENCE = 90
 @lru_cache(maxsize=None)
 def match(name: str) -> dict:
     """GBIF match for one name: scientific name, canonical name and mapping confidence."""
-    resp = requests.get(MATCH_URL, headers=HEADERS, timeout=30,
-                        params={"scientificName": name, "kingdom": "Plantae"})
+    resp = _session.get(MATCH_URL, timeout=30, params={"scientificName": name, "kingdom": "Plantae"})
     resp.raise_for_status()
     data = resp.json()
     diagnostics = data.get("diagnostics", {})
