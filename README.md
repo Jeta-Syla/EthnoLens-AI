@@ -338,7 +338,16 @@ pip install -r requirements.txt
 cp .env.example .env               # Windows: copy .env.example .env
 ```
 
-For LLM extraction and generated answers, put an OpenAI API key in `.env` (`LLM_API_KEY=...`). Without it, everything else works: uploads store the text, and Ask EthnoLens returns the cited passages instead of a generated answer.
+For LLM extraction and generated answers, `.env` supports OpenAI-compatible providers. For the Groq key used by this project, set:
+
+```env
+LLM_PROVIDER=groq
+LLM_BASE_URL=https://api.groq.com/openai/v1/chat/completions
+LLM_MODEL=openai/gpt-oss-20b
+LLM_API_KEY=...
+```
+
+Then run `python -m pipeline.extract`. Without a key, uploads still store text and Ask EthnoLens returns cited passages instead of generated answers.
 
 ### 3. Build the database (one command)
 

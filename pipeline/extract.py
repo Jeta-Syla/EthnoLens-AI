@@ -40,18 +40,19 @@ def _call_llm(passage: Passage, metadata: dict[str, Any]) -> list[dict[str, Any]
     default_model = "llama-3.3-70b-versatile" if provider == "groq" else "gpt-4o-mini"
     payload = {"model": os.getenv("LLM_MODEL", default_model),
                "messages": extraction_messages(passage.text, metadata),
-               "temperature": 0}
+               "temperature": 0,
+               "max_tokens": int(os.getenv("LLM_MAX_TOKENS", "4096"))}
     if provider == "openai":
         payload["response_format"] = {"type": "json_object"}
-    response = requests.post(
-        os.getenv("LLM_BASE_URL", default_base),
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-        json=payload,
-        timeout=90,
-    )
-    if response.status_code == 429:
-        time.sleep(3)
-        response = requests.post(response.request.url, headers=dict(response.request.headers), json=payload, timeout=90)
+    url = os.getenv("LLM_BASE_URL", default_base)
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    response = None
+    for attempt in range(3):
+        response = requests.post(url, headers=headers, json=payload, timeout=90)
+        if response.status_code != 429 or attempt == 2:
+            break
+        retry_after = response.headers.get("retry-after")
+        time.sleep(float(retry_after) if retry_after else 10 * (attempt + 1))
     response.raise_for_status()
     content = response.json()["choices"][0]["message"]["content"]
     content = re.sub(r"^```(?:json)?\s*|\s*```$", "", content.strip(), flags=re.I)

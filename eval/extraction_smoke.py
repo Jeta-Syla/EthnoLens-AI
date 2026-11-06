@@ -9,6 +9,7 @@ import json
 import os
 import re
 import sys
+import time
 from pathlib import Path
 
 import requests
@@ -26,10 +27,15 @@ def main() -> None:
     api_key = os.getenv("LLM_API_KEY")
     if not api_key:
         raise SystemExit("Set LLM_API_KEY in your local .env, then run this command again.")
-    if os.getenv("LLM_PROVIDER", "openai").casefold() != "openai":
-        raise SystemExit("This smoke runner currently supports LLM_PROVIDER=openai.")
-
-    model = os.getenv("LLM_MODEL", "gpt-4o-mini")
+    provider = os.getenv("LLM_PROVIDER", "openai").casefold()
+    if provider not in {"openai", "groq"}:
+        raise SystemExit(f"Unsupported LLM_PROVIDER={provider!r}; use openai or groq.")
+    endpoint = os.getenv(
+        "LLM_BASE_URL",
+        "https://api.groq.com/openai/v1/chat/completions"
+        if provider == "groq" else "https://api.openai.com/v1/chat/completions",
+    )
+    model = os.getenv("LLM_MODEL", "openai/gpt-oss-20b" if provider == "groq" else "gpt-4o-mini")
     samples = json.loads(SAMPLES.read_text(encoding="utf-8"))
     if len(samples) != 10:
         raise SystemExit(f"Expected 10 sample passages, found {len(samples)}.")
@@ -40,15 +46,22 @@ def main() -> None:
     for index, sample in enumerate(samples, start=1):
         passage = sample["passage"]
         metadata = {key: sample.get(key) for key in ("source", "folio", "language", "region", "period")}
-        response = session.post(
-            "https://api.openai.com/v1/chat/completions",
-            json={"model": model, "messages": extraction_messages(passage, metadata),
-                  "response_format": {"type": "json_object"}, "temperature": 0},
-            timeout=90,
-        )
+        payload = {"model": model, "messages": extraction_messages(passage, metadata),
+                   "temperature": 0, "max_tokens": int(os.getenv("LLM_MAX_TOKENS", "4096"))}
+        if provider == "openai":
+            payload["response_format"] = {"type": "json_object"}
+        for attempt in range(3):
+            response = session.post(endpoint, json=payload, timeout=90)
+            if response.status_code != 429 or attempt == 2:
+                break
+            retry_after = response.headers.get("retry-after")
+            time.sleep(float(retry_after) if retry_after else 10 * (attempt + 1))
+        if response.status_code >= 400:
+            detail = response.text[:500].replace("\n", " ")
+            raise RuntimeError(f"{provider} request failed ({response.status_code}): {detail}")
         response.raise_for_status()
         content = response.json()["choices"][0]["message"]["content"]
-        # JSON mode accepts an object root; the prompt requires a record array.
+        content = re.sub(r"^```(?:json)?\s*|\s*```$", "", content.strip(), flags=re.I)
         decoded = json.loads(content)
         records = decoded if isinstance(decoded, list) else decoded.get("records")
         if not isinstance(records, list):
