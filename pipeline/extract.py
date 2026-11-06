@@ -6,6 +6,8 @@ import hashlib
 import json
 import os
 import argparse
+import re
+import time
 from typing import Any
 
 import requests
@@ -30,19 +32,37 @@ def _call_llm(passage: Passage, metadata: dict[str, Any]) -> list[dict[str, Any]
     api_key = os.getenv("LLM_API_KEY")
     if not api_key:
         raise RuntimeError("LLM_API_KEY is not set; add it to the local .env file")
-    if os.getenv("LLM_PROVIDER", "openai").casefold() != "openai":
-        raise RuntimeError("Only the OpenAI-compatible provider is supported")
+    provider = os.getenv("LLM_PROVIDER", "openai").casefold()
+    if provider not in {"openai", "groq"}:
+        raise RuntimeError(f"Unsupported LLM_PROVIDER: {provider}")
+    default_base = ("https://api.groq.com/openai/v1/chat/completions" if provider == "groq"
+                    else "https://api.openai.com/v1/chat/completions")
+    default_model = "llama-3.3-70b-versatile" if provider == "groq" else "gpt-4o-mini"
+    payload = {"model": os.getenv("LLM_MODEL", default_model),
+               "messages": extraction_messages(passage.text, metadata),
+               "temperature": 0}
+    if provider == "openai":
+        payload["response_format"] = {"type": "json_object"}
     response = requests.post(
-        os.getenv("LLM_BASE_URL", "https://api.openai.com/v1/chat/completions"),
+        os.getenv("LLM_BASE_URL", default_base),
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-        json={"model": os.getenv("LLM_MODEL", "gpt-4o-mini"),
-              "messages": extraction_messages(passage.text, metadata),
-              "response_format": {"type": "json_object"}, "temperature": 0},
+        json=payload,
         timeout=90,
     )
+    if response.status_code == 429:
+        time.sleep(3)
+        response = requests.post(response.request.url, headers=dict(response.request.headers), json=payload, timeout=90)
     response.raise_for_status()
     content = response.json()["choices"][0]["message"]["content"]
-    return _records_from_response(json.loads(content))
+    content = re.sub(r"^```(?:json)?\s*|\s*```$", "", content.strip(), flags=re.I)
+    try:
+        decoded = json.loads(content)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", content, flags=re.S)
+        if not match:
+            raise
+        decoded = json.loads(match.group(0))
+    return _records_from_response(decoded)
 
 
 def _validate(raw_records: list[dict[str, Any]], passage: Passage, metadata: dict[str, Any]) -> list[Record]:

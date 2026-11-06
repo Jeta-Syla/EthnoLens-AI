@@ -136,13 +136,17 @@ def _generated_answer(question: str, passages: list[dict[str, str]]) -> str | No
     api_key = os.getenv("LLM_API_KEY")
     if not api_key:
         return None
+    provider = os.getenv("LLM_PROVIDER", "openai").casefold()
+    default_base = ("https://api.groq.com/openai/v1/chat/completions" if provider == "groq"
+                    else "https://api.openai.com/v1/chat/completions")
+    default_model = "llama-3.3-70b-versatile" if provider == "groq" else "gpt-4o-mini"
     context = "\n\n".join(
         f"[{item['source']}, {item['folio']}, {item['passage_id']}] {item['passage']}" for item in passages
     )
     response = requests.post(
-        os.getenv("LLM_BASE_URL", "https://api.openai.com/v1/chat/completions"),
+        os.getenv("LLM_BASE_URL", default_base),
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-        json={"model": os.getenv("LLM_MODEL", "gpt-4o-mini"), "temperature": 0,
+        json={"model": os.getenv("LLM_MODEL", default_model), "temperature": 0,
               "messages": [{"role": "system", "content": "Answer only from the supplied archive passages. Cite claims as [source, folio]. If the passages do not answer the question, say that the archive has no data."},
                            {"role": "user", "content": f"Question: {question}\n\nArchive passages:\n{context}"}]},
         timeout=90,
