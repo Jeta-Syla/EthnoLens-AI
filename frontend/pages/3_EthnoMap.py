@@ -12,16 +12,19 @@ disclaimer()
 
 records, source = load_records()
 source_caption(source)
+if source != "api":
+    st.stop()
 try:
-    response = requests.get(f"{api_url()}/map", timeout=1.5)
-    response.raise_for_status()
-    payload = response.json()
+    with st.spinner("Loading the map…"):
+        response = requests.get(f"{api_url()}/map", timeout=1.5)
+        response.raise_for_status()
+        payload = response.json()
     mapped = payload if isinstance(payload, list) else payload.get("records", records)
     if isinstance(mapped, list):
         records = mapped
         st.caption(f"Points from {api_url()}/map")
 except (requests.RequestException, ValueError, AttributeError):
-    pass
+    st.info("GET /map did not answer. The points below come from the archive records.", title="Map endpoint quiet")
 
 by_region: dict[str, list[dict]] = {}
 without_region = []
@@ -60,5 +63,8 @@ else:
     st_folium(chart, height=480, use_container_width=True)
 
 if not by_region:
-    st.info("No loaded record documents a region in Kosovo or Albania, so the map has no points.")
+    st.info(
+        "No loaded record documents a region in Kosovo or Albania, so the map has no points.",
+        title="No documented region",
+    )
 st.caption(f"{len(without_region)} records have no Kosovo or Albania region, so they are not on the map.")

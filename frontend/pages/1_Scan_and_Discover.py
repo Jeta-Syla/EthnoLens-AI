@@ -13,16 +13,23 @@ disclaimer()
 with st.container(border=True):
     upload = st.file_uploader("Document", type=["pdf", "png", "jpg", "jpeg", "tif", "tiff", "txt"])
     send = st.button("Send to API", type="primary", icon=":material/upload:")
-if upload is None or not send:
-    st.caption("Nothing is sent until you choose a file and press Send to API.")
+if upload is None:
+    st.info(
+        "Choose a PDF, an image, or a text file. Nothing leaves this page until you press Send to API.",
+        title="No document yet",
+    )
+    st.stop()
+if not send:
+    st.caption("The file stays here until you press Send to API.")
     st.stop()
 
 try:
-    response = requests.post(
-        f"{api_url()}/documents",
-        files={"file": (upload.name, upload.getvalue(), upload.type or "application/octet-stream")},
-        timeout=60,
-    )
+    with st.spinner("Reading the document…"):
+        response = requests.post(
+            f"{api_url()}/documents",
+            files={"file": (upload.name, upload.getvalue(), upload.type or "application/octet-stream")},
+            timeout=60,
+        )
     if response.status_code >= 400:
         # The API explains what went wrong (no text found, Poppler or Tesseract missing, unsupported type).
         try:
@@ -49,9 +56,12 @@ if isinstance(records, list) and records:
         render_plant(record)
         st.divider()
 elif isinstance(passages, list) and passages:
-    st.info("The file was stored. Extraction has not returned plant records yet, so there is nothing to highlight.")
+    st.info(
+        "The file was stored. Extraction has not returned plant records yet, so there is nothing to highlight.",
+        title="No plants to mark",
+    )
     for passage in passages:
         st.markdown(f"**{passage.get('folio', 'page')}**")
         render_passage({"passage": passage.get("text") or "", "span": None})
 else:
-    st.info("The API answered, but it returned no records.")
+    st.info("The API answered, but it returned no passage and no plant record.", title="Nothing came back")

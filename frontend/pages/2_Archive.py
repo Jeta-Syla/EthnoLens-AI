@@ -10,6 +10,11 @@ page_heading("Archive", "Search the records, then open one plant as a specimen s
 disclaimer()
 records, source = load_records()
 source_caption(source)
+if source != "api":
+    st.stop()
+if not records:
+    st.info("The API is running, and it has no plant records yet.", title="Empty archive")
+    st.stop()
 
 with st.container(border=True):
     query = st.text_input("Search", placeholder="Historical name, local name, or scientific name")
@@ -23,7 +28,7 @@ filtered = filter_records(records, query, part_choice, preparation_choice, sourc
 st.caption(f"{len(filtered)} records")
 
 if not filtered:
-    st.info("No records match these filters.")
+    st.info("Nothing in the archive matches this search or these filters.", title="No matches")
 else:
     labels = {
         record["id"]: f"{record['historical_name']} — {record['source']} {record['folio']}"

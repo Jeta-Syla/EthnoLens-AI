@@ -21,6 +21,12 @@ for index, message in enumerate(st.session_state.ask_messages):
             render_citations(message.get("citations") or [], records, f"cite-{index}")
 
 question = st.chat_input("Ask about a plant in the archive")
+if not st.session_state.ask_messages:
+    st.info(
+        "Ask about a plant that might be in the archive. A dose or a treatment is refused. "
+        "If no passage supports the answer, EthnoLens says the archive has no data.",
+        title="No question yet",
+    )
 if not question:
     st.stop()
 
@@ -34,9 +40,10 @@ if is_medical_question(question):
 else:
     answer = NO_DATA
     try:
-        response = requests.post(f"{api_url()}/ask", json={"question": question}, timeout=8)
-        response.raise_for_status()
-        payload = response.json()
+        with st.spinner("Looking in the archive…"):
+            response = requests.post(f"{api_url()}/ask", json={"question": question}, timeout=8)
+            response.raise_for_status()
+            payload = response.json()
         text = payload.get("answer") if isinstance(payload, dict) else None
         found = payload.get("citations") if isinstance(payload, dict) else None
         if payload.get("mode") == "refused":  # the server's rule is the authority, not the local pattern
