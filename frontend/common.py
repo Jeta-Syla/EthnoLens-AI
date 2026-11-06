@@ -1,11 +1,11 @@
 """Shared helpers for the Streamlit pages.
 
-Records come from GET /records when that endpoint answers, and otherwise from
-frontend/mock.json. The mock file is illustrative. It is not an extraction.
+Records come from the live API. When the backend is unavailable, pages receive
+an empty list and show an explicit connection state instead of presenting demo
+records as if they were extracted data.
 """
 
 import html
-import json
 import os
 import re
 from pathlib import Path
@@ -14,7 +14,6 @@ import requests
 import streamlit as st
 
 ROOT = Path(__file__).resolve().parent
-MOCK_PATH = ROOT / "mock.json"
 REPO_ROOT = ROOT.parent
 
 DISCLAIMER = (
@@ -55,7 +54,7 @@ def api_url() -> str:
 
 
 def load_records() -> tuple[list[dict], str]:
-    """Return (records, source) where source is 'api' or 'mock'."""
+    """Return (records, source) where source is 'api' or 'unavailable'."""
     try:
         response = requests.get(f"{api_url()}/records", timeout=1.5)
         response.raise_for_status()
@@ -65,8 +64,7 @@ def load_records() -> tuple[list[dict], str]:
             return records, "api"
     except (requests.RequestException, ValueError, KeyError, TypeError):
         pass
-    records = json.loads(MOCK_PATH.read_text(encoding="utf-8"))
-    return records, "mock"
+    return [], "unavailable"
 
 
 _SPRIG = """
@@ -167,7 +165,7 @@ def source_caption(source: str) -> None:
     if source == "api":
         st.caption(f"Records from {api_url()}/records")
     else:
-        st.caption("GET /records is not available yet. These 10 records are illustrative mock data, not extractions.")
+        st.warning(f"Backend API is unavailable at {api_url()}. Start FastAPI to load archive records.")
 
 
 def is_medical_question(question: str) -> bool:
