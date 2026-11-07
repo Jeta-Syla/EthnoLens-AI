@@ -28,6 +28,22 @@ def _records_from_response(payload: Any) -> list[dict[str, Any]]:
     raise ValueError("LLM response must contain a records array")
 
 
+def _decode_json_content(content: str) -> Any:
+    """Decode the first complete JSON value from an LLM response."""
+    decoder = json.JSONDecoder()
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", content.strip(), flags=re.I)
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError as original_error:
+        for match in re.finditer(r"[\[{]", cleaned):
+            try:
+                value, _ = decoder.raw_decode(cleaned[match.start():])
+                return value
+            except json.JSONDecodeError:
+                continue
+        raise original_error
+
+
 def _call_llm(passage: Passage, metadata: dict[str, Any]) -> list[dict[str, Any]]:
     api_key = os.getenv("LLM_API_KEY")
     if not api_key:
@@ -55,14 +71,7 @@ def _call_llm(passage: Passage, metadata: dict[str, Any]) -> list[dict[str, Any]
         time.sleep(float(retry_after) if retry_after else 10 * (attempt + 1))
     response.raise_for_status()
     content = response.json()["choices"][0]["message"]["content"]
-    content = re.sub(r"^```(?:json)?\s*|\s*```$", "", content.strip(), flags=re.I)
-    try:
-        decoded = json.loads(content)
-    except json.JSONDecodeError:
-        match = re.search(r"\{.*\}", content, flags=re.S)
-        if not match:
-            raise
-        decoded = json.loads(match.group(0))
+    decoded = _decode_json_content(content)
     return _records_from_response(decoded)
 
 
