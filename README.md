@@ -21,7 +21,7 @@
 | One-command rebuild | ✅ Works | `python -m pipeline.rebuild` builds the database from zero and keeps extracted records |
 | GBIF mapping | ✅ Works | `pipeline/taxonomy.py`: high only for an exact species-level match; spelling variants are medium; genus-only, no match, or a near-miss that lands on a synonym stay *candidate* |
 | Ask EthnoLens (RAG) | ✅ Works | Cites a passage only if it contains a word of the question or the plant's historical spelling (found from its English or Albanian name); otherwise "no data". Chroma orders the matches. Personal medical questions refused (15/15 in `eval.rag_smoke`, English and Albanian); without an API key it returns the cited passages |
-| Evaluation on 50 annotated recipes | 🟡 In progress | 33 of 50 annotated (16 by hand, 17 with AI assistance), 17 still to annotate; `eval/metrics.py` ready and skips recipes not annotated yet; results after the full extraction run |
+| Evaluation on 50 annotated recipes | 🟡 In progress | 47 of 50 recipes currently annotated; `eval/metrics.py` reports precision, recall and F1 while excluding blank rows; 3 recipes remain to reach the target |
 | Handwritten text recognition (HTR) | ❌ Not planned for the prototype | See [Roadmap](#11-roadmap) |
 
 ---
@@ -247,12 +247,12 @@ The prototype starts with existing models, LLM-based extraction and rule-based m
 | Grounded answers | Share of Ask EthnoLens answers that cite a supporting passage. Unsupported questions must be declined. |
 | Usability | Time for a user to find all sources that mention a given plant (target: **< 1 minute**, compared with manual search) |
 
-Current run on the local 100-recipe corpus: **60 records** have been extracted so far. All 60 records are traceable to a stored passage (**100% traceability**) and 59/60 stored spans are valid (**98.33% span validity**). Precision, recall and F1 remain pending until the hand-annotation CSVs are completed; blank annotation rows are excluded by `eval/metrics.py`. The Ask smoke suite currently passes **15/15 medical refusals**, **3/3 historical questions not refused**, and the no-data citation check.
+Current run on the local 100-recipe corpus: **174 records** have been extracted so far. All records are traceable to a stored passage (**100% traceability**) and 174/175 stored spans are valid (**99.43% span validity**). Across the 47 currently annotated passages, precision is **79.07%**, recall **54.40%**, and F1 **64.45%**; three more recipes are needed for the 50-recipe target. The Ask smoke suite currently passes **15/15 medical refusals**, **3/3 historical questions not refused**, and the no-data citation check.
 
 **Demo targets:**
 - 100 recipes from MS Add. 9308 processed end to end (loaded ✅, extraction in progress);
 - 25 BHL pages processed through OCR ✅;
-- 50 hand-annotated recipes as the extraction test set (in progress);
+- 50 hand-annotated recipes as the extraction test set (47/50 complete);
 - the Albanian Alps (Kosovo) field study integrated, with Albanian local names shown on EthnoMap (names ✅, map in progress);
 - every record traceable to its original passage (enforced by the database: each record belongs to a passage).
 
