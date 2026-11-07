@@ -54,6 +54,31 @@ def load_predictions(passages: set[str]) -> set[tuple[str, str, str]]:
     return {key for key in keys if key[0] in passages}
 
 
+def archive_quality() -> dict[str, float | int]:
+    """Measure source traceability and highlight-span validity for all records."""
+    db.init_db()
+    with db.connect() as conn:
+        rows = conn.execute(
+            """SELECT r.passage_id, r.historical_name, r.span_start, r.span_end, p.text
+               FROM records r JOIN passages p ON p.id = r.passage_id"""
+        ).fetchall()
+    total = len(rows)
+    traceable = sum(bool(row["passage_id"] and row["text"]) for row in rows)
+    valid_spans = sum(
+        row["span_start"] is not None
+        and row["span_end"] is not None
+        and row["text"][row["span_start"]:row["span_end"]] == row["historical_name"]
+        for row in rows
+    )
+    return {
+        "records_checked": total,
+        "traceable_records": traceable,
+        "traceability": traceable / total if total else 0.0,
+        "valid_spans": valid_spans,
+        "span_validity": valid_spans / total if total else 0.0,
+    }
+
+
 def evaluate(gold_paths: list[Path] | None = None, human_only: bool = False) -> dict[str, float | int]:
     paths = gold_paths or sorted(ANNOTATION_DIR.glob("*.csv"))
     gold, passages = load_gold(paths, human_only)
@@ -64,7 +89,7 @@ def evaluate(gold_paths: list[Path] | None = None, human_only: bool = False) -> 
     precision = true_positive / (true_positive + false_positive) if true_positive + false_positive else 0.0
     recall = true_positive / (true_positive + false_negative) if true_positive + false_negative else 0.0
     f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
-    return {"passages": len(passages), "gold": len(gold), "predicted": len(predicted), "true_positive": true_positive,
+    return {**archive_quality(), "passages": len(passages), "gold": len(gold), "predicted": len(predicted), "true_positive": true_positive,
             "false_positive": false_positive, "false_negative": false_negative,
             "precision": precision, "recall": recall, "f1": f1}
 

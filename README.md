@@ -247,6 +247,8 @@ The prototype starts with existing models, LLM-based extraction and rule-based m
 | Grounded answers | Share of Ask EthnoLens answers that cite a supporting passage. Unsupported questions must be declined. |
 | Usability | Time for a user to find all sources that mention a given plant (target: **< 1 minute**, compared with manual search) |
 
+Current run on the local 100-recipe corpus: **60 records** have been extracted so far. All 60 records are traceable to a stored passage (**100% traceability**) and 59/60 stored spans are valid (**98.33% span validity**). Precision, recall and F1 remain pending until the hand-annotation CSVs are completed; blank annotation rows are excluded by `eval/metrics.py`. The Ask smoke suite currently passes **15/15 medical refusals**, **3/3 historical questions not refused**, and the no-data citation check.
+
 **Demo targets:**
 - 100 recipes from MS Add. 9308 processed end to end (loaded ✅, extraction in progress);
 - 25 BHL pages processed through OCR ✅;

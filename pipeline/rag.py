@@ -143,16 +143,19 @@ def _generated_answer(question: str, passages: list[dict[str, str]]) -> str | No
     context = "\n\n".join(
         f"[{item['source']}, {item['folio']}, {item['passage_id']}] {item['passage']}" for item in passages
     )
-    response = requests.post(
-        os.getenv("LLM_BASE_URL", default_base),
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-        json={"model": os.getenv("LLM_MODEL", default_model), "temperature": 0,
-              "messages": [{"role": "system", "content": "Answer only from the supplied archive passages. Cite claims as [source, folio]. If the passages do not answer the question, say that the archive has no data."},
-                           {"role": "user", "content": f"Question: {question}\n\nArchive passages:\n{context}"}]},
-        timeout=90,
-    )
-    response.raise_for_status()
-    return response.json()["choices"][0]["message"]["content"].strip()
+    try:
+        response = requests.post(
+            os.getenv("LLM_BASE_URL", default_base),
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json={"model": os.getenv("LLM_MODEL", default_model), "temperature": 0,
+                  "messages": [{"role": "system", "content": "Answer only from the supplied archive passages. Cite claims as [source, folio]. If the passages do not answer the question, say that the archive has no data."},
+                               {"role": "user", "content": f"Question: {question}\n\nArchive passages:\n{context}"}]},
+            timeout=90,
+        )
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"].strip()
+    except (requests.RequestException, KeyError, TypeError, ValueError):
+        return None
 
 
 def answer(question: str) -> dict:
