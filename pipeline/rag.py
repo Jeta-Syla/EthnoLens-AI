@@ -36,6 +36,9 @@ arkiva arkivi arkivën arkiven rreth mbi dhe nga janë jane është eshte përdo
 """.split())
 REFUSAL = "EthnoLens does not give medical advice, dosages or treatments. Uses in the archive are historical descriptions, not instructions."
 NO_DATA = "The archive has no passage about this."
+QUESTION_ALIASES = {
+    "sherbela": ("sage", "sauge", "sal gemme"),
+}
 
 try:
     import chromadb
@@ -86,6 +89,7 @@ def _expand(question: str) -> str:
     The passages are Middle English, so "sage" or "Sherbela" must also search for "sauge".
     """
     words = set(re.findall(r"[^\W\d_]{4,}", question.casefold()))
+    aliases = [alias for word in words for alias in QUESTION_ALIASES.get(word, ())]
     names = set()
     with db.connect() as conn:
         for word in words:
@@ -94,7 +98,7 @@ def _expand(question: str) -> str:
                 "SELECT DISTINCT historical_name FROM records_full "
                 "WHERE normalised_name LIKE ? OR local_name LIKE ? OR candidate_scientific_name LIKE ?",
                 (like, like, like)))
-    return " ".join([question, *sorted(names)])
+    return " ".join([question, *aliases, *sorted(names)])
 
 
 def _words(text: str) -> set[str]:

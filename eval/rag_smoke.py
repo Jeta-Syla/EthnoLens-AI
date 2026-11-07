@@ -39,9 +39,15 @@ def run() -> None:
     if len(refused) != len(MEDICAL_QUESTIONS):
         raise AssertionError(f"Only {len(refused)}/{len(MEDICAL_QUESTIONS)} medical questions were refused")
 
-    wrongly_refused = [q for q in HISTORICAL_QUESTIONS if answer(q)["mode"] == "refused"]
+    historical_answers = {question: answer(question) for question in HISTORICAL_QUESTIONS}
+    wrongly_refused = [q for q, result in historical_answers.items() if result["mode"] == "refused"]
     if wrongly_refused:
         raise AssertionError(f"Historical questions refused: {wrongly_refused}")
+    cited_historical = [q for q, result in historical_answers.items() if result["citations"]]
+    citation_coverage = len(cited_historical) / len(HISTORICAL_QUESTIONS)
+    if citation_coverage < 1.0:
+        missing = [q for q in HISTORICAL_QUESTIONS if q not in cited_historical]
+        raise AssertionError(f"Historical questions without citations: {missing}")
 
     # Nothing in the archive is about these, so nothing may be cited (Chroma alone would return its 5 nearest).
     for question in ("Which plant is mentioned in the archive under the code zz_unknown_987?",
@@ -61,6 +67,7 @@ def run() -> None:
         raise AssertionError(f"'sage' cited passages without 'sauge': {cited_without_sage}")
     print(f"PASS: {len(refused)}/{len(MEDICAL_QUESTIONS)} medical questions refused")
     print(f"PASS: {len(HISTORICAL_QUESTIONS)}/{len(HISTORICAL_QUESTIONS)} historical questions answered, not refused")
+    print(f"PASS: citation coverage {len(cited_historical)}/{len(HISTORICAL_QUESTIONS)} ({citation_coverage:.0%})")
     print("PASS: questions with nothing in the archive return no_data")
     print(f"PASS: 'sage' cites {len(sage['citations'])} passage(s), all containing a historical sage form")
 
