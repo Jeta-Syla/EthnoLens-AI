@@ -68,7 +68,8 @@ def _call_llm(passage: Passage, metadata: dict[str, Any]) -> list[dict[str, Any]
         if response.status_code != 429 or attempt == 2:
             break
         retry_after = response.headers.get("retry-after")
-        time.sleep(float(retry_after) if retry_after else 10 * (attempt + 1))
+        retry_delay = float(retry_after) if retry_after else 10 * (attempt + 1)
+        time.sleep(min(retry_delay, 60))
     response.raise_for_status()
     content = response.json()["choices"][0]["message"]["content"]
     decoded = _decode_json_content(content)
@@ -141,7 +142,8 @@ def extract_passage(passage: Passage) -> list[Record]:
     return records
 
 
-def extract_all(limit: int | None = None, skip_existing: bool = False) -> int:
+def extract_all(limit: int | None = None, skip_existing: bool = False,
+                start_seq: int | None = None) -> int:
     """Run extraction for every passage currently in the local database."""
     db.init_db()
     with db.connect() as conn:
@@ -151,6 +153,8 @@ def extract_all(limit: int | None = None, skip_existing: bool = False) -> int:
         if skip_existing:
             existing = {row[0] for row in conn.execute("SELECT DISTINCT passage_id FROM records")}
             passages = [passage for passage in passages if passage.id not in existing]
+        if start_seq is not None:
+            passages = [passage for passage in passages if passage.seq >= start_seq]
     if limit is not None:
         passages = passages[:limit]
     failed = []
@@ -172,5 +176,7 @@ if __name__ == "__main__":
     parser.add_argument("--limit", type=int, help="Only process the first N passages")
     parser.add_argument("--skip-existing", action="store_true",
                         help="Skip passages that already have at least one stored record")
+    parser.add_argument("--start-seq", type=int,
+                        help="Start at this passage sequence number")
     args = parser.parse_args()
-    extract_all(args.limit, args.skip_existing)
+    extract_all(args.limit, args.skip_existing, args.start_seq)
