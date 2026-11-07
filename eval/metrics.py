@@ -11,6 +11,7 @@ from backend.app import db
 
 ROOT = Path(__file__).resolve().parents[1]
 ANNOTATION_DIR = ROOT / "eval" / "annotations"
+ANNOTATION_TARGET = 50
 
 
 def _normalise(value: str | None) -> str:
@@ -89,7 +90,11 @@ def evaluate(gold_paths: list[Path] | None = None, human_only: bool = False) -> 
     precision = true_positive / (true_positive + false_positive) if true_positive + false_positive else 0.0
     recall = true_positive / (true_positive + false_negative) if true_positive + false_negative else 0.0
     f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
-    return {**archive_quality(), "passages": len(passages), "gold": len(gold), "predicted": len(predicted), "true_positive": true_positive,
+    return {**archive_quality(), "passages": len(passages),
+            "annotation_target": ANNOTATION_TARGET,
+            "annotation_coverage": f"{len(passages)}/{ANNOTATION_TARGET}",
+            "annotation_target_met": len(passages) >= ANNOTATION_TARGET,
+            "gold": len(gold), "predicted": len(predicted), "true_positive": true_positive,
             "false_positive": false_positive, "false_negative": false_negative,
             "precision": precision, "recall": recall, "f1": f1}
 
@@ -100,9 +105,14 @@ def main() -> None:
                         help="Evaluate selected annotation set(s); defaults to all CSV files")
     parser.add_argument("--human-only", action="store_true",
                         help="Leave out recipes annotated with AI assistance ([AI-assisted] in notes)")
+    parser.add_argument("--require-target", action="store_true",
+                        help="Exit with status 1 when fewer than 50 recipes are annotated")
     args = parser.parse_args()
     paths = [ANNOTATION_DIR / f"{name}.csv" for name in args.annotator] if args.annotator else None
-    print(json.dumps(evaluate(paths, args.human_only), indent=2))
+    result = evaluate(paths, args.human_only)
+    print(json.dumps(result, indent=2))
+    if args.require_target and not result["annotation_target_met"]:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
