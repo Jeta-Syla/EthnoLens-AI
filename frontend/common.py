@@ -60,14 +60,21 @@ def api_url() -> str:
 
 def load_records() -> tuple[list[dict], str]:
     """Return (records, source) where source is 'api' or 'unavailable'."""
+    page_size = 1000  # the API's maximum; GET /records returns only 100 by default
+    records: list[dict] = []
     with st.spinner("Loading the archive…"):
         try:
-            response = requests.get(f"{api_url()}/records", timeout=1.5)
-            response.raise_for_status()
-            payload = response.json()
-            records = payload["records"] if isinstance(payload, dict) else payload
-            if isinstance(records, list):
-                return records, "api"
+            while True:
+                response = requests.get(f"{api_url()}/records", timeout=5,
+                                        params={"limit": page_size, "offset": len(records)})
+                response.raise_for_status()
+                payload = response.json()
+                page = payload["records"] if isinstance(payload, dict) else payload
+                if not isinstance(page, list):
+                    break
+                records += page
+                if len(page) < page_size:
+                    return records, "api"
         except (requests.RequestException, ValueError, KeyError, TypeError):
             pass
     return [], "unavailable"

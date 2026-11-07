@@ -36,8 +36,11 @@ arkiva arkivi arkivën arkiven rreth mbi dhe nga janë jane është eshte përdo
 """.split())
 REFUSAL = "EthnoLens does not give medical advice, dosages or treatments. Uses in the archive are historical descriptions, not instructions."
 NO_DATA = "The archive has no passage about this."
+# Albanian names whose historical spelling is known even before any record exists.
+# ("sal gemme" in MS Add. 9308 f. 23r is rock salt, sal gemmae, not sage.)
 QUESTION_ALIASES = {
-    "sherbela": ("sage", "sauge", "sal gemme"),
+    "sherbela": ("sage", "sauge"),
+    "sage": ("sauge",),
 }
 
 try:

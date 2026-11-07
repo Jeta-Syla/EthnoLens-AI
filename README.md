@@ -17,7 +17,7 @@
 | OCR | ✅ Works | Tesseract on 25 BHL page scans: mean character error rate **2.7%** (about 1.2% on prose pages, 38% on a two-column contents page) |
 | Albanian local names | ✅ Works | 100 names for 98 species from Mustafa et al. (2012), joined to records through GBIF accepted names (7 outdated names in the article resolved, e.g. *Matricaria recutita* → *M. chamomilla*) |
 | Streamlit frontend | ✅ Works | Four pages (Scan & Discover, Archive, EthnoMap, Ask) on the live API, no mock data; the full flow (upload → records → archive → map → Ask) tested end to end 3 times with text, image and PDF uploads; the API's reason is shown when an upload fails or extraction is skipped |
-| LLM extraction | ✅ Implemented | OpenAI `gpt-4o-mini` in JSON mode; every record is validated against the contract, with one retry on an invalid response; needs an API key |
+| LLM extraction | ✅ Works | `openai/gpt-oss-20b` on Groq (any OpenAI-compatible provider can be set in `.env`), temperature 0; every record is validated against the contract, with one retry on an invalid response; needs an API key |
 | One-command rebuild | ✅ Works | `python -m pipeline.rebuild` builds the database from zero and keeps extracted records |
 | GBIF mapping | ✅ Works | `pipeline/taxonomy.py`: high only for an exact species-level match; spelling variants are medium; genus-only, no match, or a near-miss that lands on a synonym stay *candidate* |
 | Ask EthnoLens (RAG) | ✅ Works | Cites a passage only if it contains a word of the question or the plant's historical spelling (found from its English or Albanian name); otherwise "no data". Chroma orders the matches. Personal medical questions refused (15/15 in `eval.rag_smoke`, English and Albanian); without an API key it returns the cited passages |
@@ -252,8 +252,8 @@ Current run on the local 100-recipe corpus: **174 records** have been extracted 
 **Demo targets:**
 - 100 recipes from MS Add. 9308 processed end to end (loaded ✅, extraction in progress);
 - 25 BHL pages processed through OCR ✅;
-- 50 hand-annotated recipes as the extraction test set ✅;
-- the Albanian Alps (Kosovo) field study integrated, with Albanian local names shown on EthnoMap (names ✅, map in progress);
+- 50 annotated recipes as the extraction test set ✅ (33 by hand, 17 with AI assistance and marked `[AI-assisted]`);
+- the Albanian Alps (Kosovo) field study integrated, with Albanian local names shown on EthnoMap ✅;
 - every record traceable to its original passage (enforced by the database: each record belongs to a passage).
 
 ---
@@ -297,7 +297,7 @@ EthnoLens AI is more than a digitisation tool. It turns historical plant knowled
 | Map | folium (Leaflet) + streamlit-folium |
 | OCR | Tesseract via pytesseract + pdf2image; HTR planned |
 | Extraction | LLM in JSON mode, validated against [`schema/record.json`](schema/record.json) |
-| LLM | OpenAI `gpt-4o-mini` (JSON mode, temperature 0) |
+| LLM | `openai/gpt-oss-20b` on Groq, OpenAI-compatible API (temperature 0); OpenAI `gpt-4o-mini` also supported |
 | Database | SQLite ([`backend/app/db.py`](backend/app/db.py)) |
 | Vector search (Ask EthnoLens) | Chroma |
 | Taxonomy | GBIF species match API |
@@ -340,7 +340,7 @@ pip install -r requirements.txt
 cp .env.example .env               # Windows: copy .env.example .env
 ```
 
-For LLM extraction and generated answers, `.env` supports OpenAI-compatible providers. For the Groq key used by this project, set:
+For LLM extraction and generated answers, `.env` supports OpenAI-compatible providers. The project uses Groq (a free API key from console.groq.com); set:
 
 ```env
 LLM_PROVIDER=groq
@@ -349,7 +349,7 @@ LLM_MODEL=openai/gpt-oss-20b
 LLM_API_KEY=...
 ```
 
-Then run `python -m pipeline.extract`. Without a key, uploads still store text and Ask EthnoLens returns cited passages instead of generated answers.
+Extraction then runs with `python -m pipeline.rebuild --extract` (step 3). Without a key, everything else works: uploads still store text and Ask EthnoLens returns cited passages instead of generated answers.
 
 ### 3. Build the database (one command)
 
