@@ -383,8 +383,6 @@ streamlit run frontend/Home.py           # frontend, in a second terminal
 
 ### 5. Evaluate
 
-The same steps are in three notebooks, saved with their outputs: [`notebooks/01_data_and_ocr.ipynb`](notebooks/01_data_and_ocr.ipynb) (sources, recipes, Albanian names, GBIF, OCR error rate), [`notebooks/02_llm_extraction.ipynb`](notebooks/02_llm_extraction.ipynb) (prompt, validation, extraction) and [`notebooks/03_evaluation_and_ask.ipynb`](notebooks/03_evaluation_and_ask.ipynb) (test set, metrics, Ask safety checks). They call the modules in `pipeline/` and `eval/`, so they give the same results as the commands below.
-
 ```bash
 python -m eval.metrics                   # precision, recall, F1 on the annotated recipes
 python -m eval.metrics --human-only      # only the recipes annotated by hand (no [AI-assisted] note)

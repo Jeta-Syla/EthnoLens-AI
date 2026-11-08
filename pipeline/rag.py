@@ -99,7 +99,8 @@ def _expand(question: str) -> str:
             like = f"%{word}%"
             names.update(row[0] for row in conn.execute(
                 "SELECT DISTINCT historical_name FROM records_full "
-                "WHERE normalised_name LIKE ? OR local_name LIKE ? OR candidate_scientific_name LIKE ?",
+                "WHERE review_status != 'rejected' "  # a name a reviewer rejected must not steer retrieval
+                "AND (normalised_name LIKE ? OR local_name LIKE ? OR candidate_scientific_name LIKE ?)",
                 (like, like, like)))
     return " ".join([question, *aliases, *sorted(names)])
 

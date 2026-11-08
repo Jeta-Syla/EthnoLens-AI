@@ -59,7 +59,7 @@ def run() -> None:
     sage = answer("Which sources mention sage?")
     # Historical spellings of sage in MS Add. 9308. Not "sal gemme" (f. 23r): that is rock salt, so a
     # record normalising it to sage is an extraction error and this check should fail until it is rejected.
-    sage_forms = ("sauge", "sal gemme")
+    sage_forms = ("sauge",)
     cited_without_sage = [
         c["passage_id"] for c in sage["citations"]
         if not any(form in c["passage"].casefold() for form in sage_forms)
