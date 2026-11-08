@@ -3,11 +3,13 @@
 
 > **EthnoLens AI is a historical research and heritage-preservation platform. It does not provide medical advice, does not recommend treatments or dosages, and does not validate the effectiveness of historical remedies.**
 
+**EthnoHack 2026 submission:** slides in [`presentation/EthnoLens-AI-slides.pdf`](presentation/EthnoLens-AI-slides.pdf) · pitch video and demo on the Devpost project page · code under the [MIT License](LICENSE).
+
 ---
 
 ## Project Status
 
-*Updated 6 November 2026. This prototype was built during EthnoHack 2026; the table says honestly what works and what does not yet.*
+*Updated 8 November 2026. This prototype was built during EthnoHack 2026; the table says honestly what works and what does not yet.*
 
 | Part | Status | Details |
 |---|---|---|
@@ -249,8 +251,10 @@ The prototype starts with existing models, LLM-based extraction and rule-based m
 
 Current run on the local 100-recipe corpus: **200 records** have been extracted so far. All records are traceable to a stored passage (**100% traceability**) and all 200 stored spans are valid (**100% span validity**). Across all 50 annotated passages, precision is **80.85%**, recall **60.80%**, and F1 **69.41%**. The Ask smoke suite passes **15/15 medical refusals**, **3/3 historical questions not refused**, **100% citation coverage** on the historical test set, and the no-data citation check.
 
+**Albanian names and review.** 31 of the 200 records are linked to an Albanian local name: `pipeline/propose_names.py` proposes a Latin name for each normalised name, GBIF checks it, and the accepted name joins Mustafa et al. (2012) (e.g. *sauge* → *Salvia officinalis* → Sherbela). A review of the linked names rejected 1 record (*sal gemme*, f. 23r, is rock salt, read by the model as sage) and corrected 4 (*smalache* and *ache* are smallage, *Apium graveolens*, not chamomile or yarrow). These corrections touch only names, so the extraction metrics above do not change.
+
 **Demo targets:**
-- 100 recipes from MS Add. 9308 processed end to end (loaded ✅, extraction in progress);
+- 100 recipes from MS Add. 9308 processed end to end ✅ (200 records from 89 recipes);
 - 25 BHL pages processed through OCR ✅;
 - 50 annotated recipes as the extraction test set ✅ (33 by hand, 17 with AI assistance and marked `[AI-assisted]`);
 - the Albanian Alps (Kosovo) field study integrated, with Albanian local names shown on EthnoMap ✅;
@@ -310,12 +314,13 @@ EthnoLens AI is more than a digitisation tool. It turns historical plant knowled
 EthnoLens-AI/
 ├── backend/app/        # FastAPI app: main.py, models.py, db.py
 ├── pipeline/           # rebuild.py (one command), ingest.py, load_cudl.py, load_names.py,
-│                       # ocr.py, extract.py, taxonomy.py, rag.py
+│                       # ocr.py, extract.py, propose_names.py, taxonomy.py, rag.py
 ├── frontend/           # Streamlit app: Scan & Discover, Archive, EthnoMap, Ask
 ├── schema/record.json  # The record contract shared by pipeline, API and frontend
-├── data/raw/           # Downloaded sources (not in Git)
+├── data/raw/           # Downloaded sources and extracted records (not in Git)
 ├── data/processed/     # Processed data, e.g. Albanian names CSV
-├── eval/               # annotations/ and metrics.py
+├── eval/               # annotations/, metrics.py, rag_smoke.py, manual_review.py
+├── presentation/       # EthnoLens-AI-slides.pdf (submission slides)
 └── .env.example        # API keys template (the real .env is never committed)
 ```
 
