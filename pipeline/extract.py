@@ -58,7 +58,7 @@ def _call_llm(passage: Passage, metadata: dict[str, Any]) -> list[dict[str, Any]
                "messages": extraction_messages(passage.text, metadata),
                "temperature": 0,
                "max_tokens": int(os.getenv("LLM_MAX_TOKENS", "4096"))}
-    if provider == "openai":
+    if provider in {"openai", "groq"}:
         payload["response_format"] = {"type": "json_object"}
     url = os.getenv("LLM_BASE_URL", default_base)
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
@@ -70,6 +70,13 @@ def _call_llm(passage: Passage, metadata: dict[str, Any]) -> list[dict[str, Any]
         retry_after = response.headers.get("retry-after")
         retry_delay = float(retry_after) if retry_after else 10 * (attempt + 1)
         time.sleep(min(retry_delay, 60))
+    if response.status_code == 429:
+        retry_after = response.headers.get("retry-after", "unknown")
+        reset_tokens = response.headers.get("x-ratelimit-reset-tokens", "unknown")
+        raise requests.HTTPError(
+            f"429 rate limit; retry-after={retry_after}; token-reset={reset_tokens}",
+            response=response,
+        )
     response.raise_for_status()
     content = response.json()["choices"][0]["message"]["content"]
     decoded = _decode_json_content(content)
