@@ -244,7 +244,7 @@ def render_passage(record: dict) -> None:
     st.html(f"<div class='el-passage'>{highlight_html(passage, span)}</div>")
     if _valid_span(passage, span):
         st.caption(f"The gold mark, characters {span[0]}–{span[1]}, is the historical name as written.")
-    else:
+    elif record.get("historical_name"):  # only a record can be inferred; a bare passage has nothing to mark
         st.caption("The historical name is not in this passage, so nothing is marked. The plant evidence is inferred.")
 
 
