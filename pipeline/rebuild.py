@@ -118,6 +118,9 @@ def rebuild(limit: int, extract: bool) -> None:
                     failed += 1
                     print(f"   failed {passage.id}: {error}")
             print(f"7. extraction: {len(todo) - failed} of {len(todo)} recipes without records extracted")
+            from pipeline.propose_names import propose
+
+            print(f"   {propose()} record(s) given a candidate scientific name (checked by GBIF in step 8)")
             export_records()
     else:
         print("7. extraction skipped (add --extract to run the LLM on recipes without records)")

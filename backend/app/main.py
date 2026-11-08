@@ -153,6 +153,12 @@ def _extract(passages: list[Passage]) -> list[str]:
         except Exception as error:  # missing API key, network error, or an invalid model response
             notes.append(f"Extraction skipped for {passage.folio}: {error}")
     try:
+        from pipeline.propose_names import propose
+
+        propose([passage.id for passage in passages])  # candidate Latin names, checked by GBIF below
+    except Exception as error:  # the upload never fails because of this step
+        notes.append(f"Scientific names not proposed: {error}")
+    try:
         map_records()
     except requests.RequestException:
         notes.append("GBIF is unreachable; scientific names will be mapped on the next run.")
