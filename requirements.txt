@@ -11,3 +11,4 @@ python-dotenv
 streamlit
 folium
 streamlit-folium
+ipykernel
